@@ -22,6 +22,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="log.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="collect_urls.py">
       <SubType>Code</SubType>
     </Compile>
