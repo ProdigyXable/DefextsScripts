@@ -14,7 +14,7 @@ class UrlCollector (object):
 
     # Github Details
     GITHUB_USERNAME = None
-    ACCESS_TOKEN = "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"
+    ACCESS_TOKEN = None
     GITHUB_ACCESS_TUPLE = None
 
     # Github API Settings
@@ -37,12 +37,15 @@ class UrlCollector (object):
     # TIMEOUT
     SLEEP_TIMEOUT = 3
 
-    def __init__(self, logLevel, github_username):
+    def __init__(self, logLevel, github_username, access_token):
         assert self.SKIPPED_DAYS >= self.MINIMUM_SKIPPED_DAYS, "Number of skipped days must be at least 0" 
         
         self.GITHUB_USERNAME = github_username
         assert not self.GITHUB_USERNAME is None, "Username must not be {}".format(None)
         
+        self.ACCESS_TOKEN = access_token
+        assert not self.ACCESS_TOKEN is None, "Access token must not be {}".format(None)
+
         self.GITHUB_ACCESS_TUPLE = ( self.GITHUB_USERNAME, self.ACCESS_TOKEN )
         self.outputStream = log.Log(logLevel)
 
@@ -184,7 +187,8 @@ class UrlCollector (object):
 
 # -- START --- #
 github_username = input("Input your Github username (needed to increase the number of results):\t")
+access_token = getpass.getpass("Input access token: \t")
 
 for language in [ 'Kotlin', 'Scala', 'Groovy' ]:
-    uc = UrlCollector(log.Log.DETAILED, github_username)
+    uc = UrlCollector(log.Log.DETAILED, github_username, access_token)
     uc.crawl(language)
