@@ -53,7 +53,10 @@ class UrlCollector (object):
         # Request data from Github server
     def request(self, url, github_account):
         self.outputStream.debug("Checking url {}".format(url))
-        return requests.get(url, auth=( github_account )).json()
+        result = requests.get(url, auth=( github_account )).json()
+
+        time.sleep(self.SLEEP_TIMEOUT) # Timeout after each request to prevent api overload
+        return request
 
     def get_num(self, url):
         total_num = 0
@@ -61,7 +64,6 @@ class UrlCollector (object):
 
         if( not ( "total_count" ) in json_data ):
             self.outputStream.warning("Request failure: {}".format(json_data["message"]))
-            time.sleep(self.SLEEP_TIMEOUT)
         else:
             total_num = json_data["total_count"]
             self.outputStream.info("[{}] projects found for {}".format(total_num, url))
@@ -79,26 +81,27 @@ class UrlCollector (object):
         num = int(total_num / self.MAX_RESULTS_PER_PAGE) + 1
 
         # Iterate through each page in accessible output
-        for pageNum_index in range(1, min(num + 1, self.MAX_PAGE_NUMBER + 2)):
-            url = "{}&page={}".format(base_url, str(pageNum_index))
+        max_pages_needed = min(num + 1, self.MAX_PAGE_NUMBER + 2)
+        for pageNum_index in range(1, max_pages_needed):
+
+            # Update url to include page information
+            url = "{}&page={}".format(base_url, pageNum_index)
             self.outputStream.info("\t Fetching page: {}".format(pageNum_index))
             data = self.request(url, self.GITHUB_ACCESS_TUPLE)
         
             if( "items" in data ):
-                dictionaryIteration_index = 0
+                date_response_index = 0
                 repo_dicts = data['items']
-                length = len(repo_dicts)
+                data_response_length = len(repo_dicts)
                             
-                while( dictionaryIteration_index < length ):
-                    self.writedata(repo_dicts,dictionaryIteration_index) 
-                    dictionaryIteration_index += 1
+                while( date_response_index < data_response_length ):
+                    self.writedata(repo_dicts, date_response_index) 
+                    date_response_index += 1
 
-                self.outputStream.debug("Saved {} entries".format(length))
-                time.sleep(self.SLEEP_TIMEOUT)
+                self.outputStream.debug("Saved {} entries".format(data_response_length))
             else:
                 self.outputStream.warning("Request failure: {}".format(data["message"]))
-                time.sleep(self.SLEEP_TIMEOUT * 3)
-
+                time.sleep(self.SLEEP_TIMEOUT * 3) # Extra timeout, in case too many api events are being called
 
     def crawl(self, language):
         self.LANGUAGE = language
@@ -115,17 +118,16 @@ class UrlCollector (object):
         # Loop from startDate to endDate
         while( NewIsoDate[0] >= self.STOP_YEAR ):
             
-            #
+            # Decrement date range
             OldIsoDate = self.decrementDate(NewIsoDate[0], NewIsoDate[1], NewIsoDate[2], 1)
             NewIsoDate = self.calculateNewIsoDate(OldIsoDate)
 
+            # Construct api url from known parameters
             url = "https://api.github.com/search/repositories?q=language:{}+created:{}..{}&per_page={}" \
                 .format(self.LANGUAGE, \
                 self.calculateIsoDateString(NewIsoDate), \
                 self.calculateIsoDateString(OldIsoDate), \
                 self.MAX_RESULTS_PER_PAGE)
-
-            time.sleep(self.SLEEP_TIMEOUT)
         
             total_num = self.get_num(url)
 
