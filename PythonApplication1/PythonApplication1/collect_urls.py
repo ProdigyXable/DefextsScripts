@@ -5,12 +5,13 @@ import os
 import getpass
 import math
 import log
+import datetime
 
 class UrlCollector (object):
 
     """Crawls Github for a given progrmaming languages and retrieves all public repositories created between two date ranges"""
     # LOG
-    outputStream = None
+    logging = None
 
     # Github Details
     GITHUB_USERNAME = None
@@ -27,15 +28,18 @@ class UrlCollector (object):
     MINIMUM_SKIPPED_DAYS = 0
 
     # START POINT CONFIGURATION
-    ISO_YEAR = 2021
-    ISO_MONTH = 5
-    ISO_DAY = 21
+    INITIAL_ISO_YEAR = 2021
+    INITIAL_ISO_MONTH = 5
+    INITIAL_ISO_DAY = 21
 
     # END POINT CONFIGURATION
     STOP_YEAR = 2009
 
     # TIMEOUT
     SLEEP_TIMEOUT = 3
+
+    # Other
+    STRING_REPEAT_CONSTANT = 24
 
     # Constructor
     def __init__(self, logLevel, github_username, access_token):
@@ -48,45 +52,43 @@ class UrlCollector (object):
         assert not self.ACCESS_TOKEN is None, "Access token must not be {}".format(None)
 
         self.GITHUB_ACCESS_TUPLE = ( self.GITHUB_USERNAME, self.ACCESS_TOKEN )
-        self.outputStream = log.Log(logLevel)
+        self.logging = log.Log(logLevel)
 
         # Request data from Github server
     def request(self, url, github_account):
-        self.outputStream.debug("Checking url {}".format(url))
+        self.logging.debug("Checking url {}".format(url))
         result = requests.get(url, auth=( github_account )).json()
 
         time.sleep(self.SLEEP_TIMEOUT) # Timeout after each request to prevent api overload
-        return request
+        return result
 
     def get_num(self, url):
         total_num = 0
         json_data = self.request(url, self.GITHUB_ACCESS_TUPLE)
 
         if( not ( "total_count" ) in json_data ):
-            self.outputStream.warning("Request failure: {}".format(json_data["message"]))
+            self.logging.warning("Request failure: {}".format(json_data["message"]))
         else:
             total_num = json_data["total_count"]
-            self.outputStream.info("[{}] projects found for {}".format(total_num, url))
+            self.logging.info("[{}] projects found for {}".format(total_num, url))
 
         return total_num
 
-    def writedata(self, repo_dicts, i):
-        file = open("output_{}".format(self.LANGUAGE), "a")
+    def writedata(self, repo_dicts, i, file):
+        
         repo_dicti = repo_dicts[i]
-     
-        file.writelines("{} {} {}".format(repo_dicti['stargazers_count'], repo_dicti['clone_url'], repo_dicti['forks_count']))
-        file.writelines("\r\n")
+        file.writelines("{} {} {}\n".format(repo_dicti['stargazers_count'], repo_dicti['clone_url'], repo_dicti['forks_count']))
 
-    def collect_data(self, base_url, total_num):
+    def collect_data(self, base_url, total_num, outputFile):
         num = int(total_num / self.MAX_RESULTS_PER_PAGE) + 1
 
         # Iterate through each page in accessible output
-        max_pages_needed = min(num + 1, self.MAX_PAGE_NUMBER + 2)
+        max_pages_needed = 1 + min(num, self.MAX_PAGE_NUMBER + 1)
         for pageNum_index in range(1, max_pages_needed):
 
             # Update url to include page information
             url = "{}&page={}".format(base_url, pageNum_index)
-            self.outputStream.info("\t Fetching page: {}".format(pageNum_index))
+            self.logging.info("\t - Fetching page: {}".format(pageNum_index))
             data = self.request(url, self.GITHUB_ACCESS_TUPLE)
         
             if( "items" in data ):
@@ -95,25 +97,23 @@ class UrlCollector (object):
                 data_response_length = len(repo_dicts)
                             
                 while( date_response_index < data_response_length ):
-                    self.writedata(repo_dicts, date_response_index) 
+                    self.writedata(repo_dicts, date_response_index, outputFile) 
                     date_response_index += 1
 
-                self.outputStream.debug("Saved {} entries".format(data_response_length))
+                outputFile.flush()
+                self.logging.debug("Saved {} entries".format(data_response_length))
             else:
-                self.outputStream.warning("Request failure: {}".format(data["message"]))
+                self.logging.warning("Request failure: {}".format(data["message"]))
                 time.sleep(self.SLEEP_TIMEOUT * 3) # Extra timeout, in case too many api events are being called
 
-    def crawl(self, language):
-        self.LANGUAGE = language
-        assert not self.LANGUAGE is None, "Language must not be {} -> {}".format(None, self.LANGUAGE)
-        
-        self.outputStream.print("Processing urls for {}".format(self.LANGUAGE))
-        self.outputStream.print("-------------------")
+    def crawl(self, outputFile):          
+        self.logging.info("Processing urls for {}".format(self.LANGUAGE))
+        self.logging.info("-" * self.STRING_REPEAT_CONSTANT)
                
         # Set original date range
-        NewIsoDate = self.decrementDate(self.ISO_YEAR, self.ISO_MONTH, self.ISO_DAY, 0)
+        NewIsoDate = self.decrementDate(self.INITIAL_ISO_YEAR, self.INITIAL_ISO_MONTH, self.INITIAL_ISO_DAY, 0)
         OldIsoDate = NewIsoDate
-        self.outputStream.detailed("Constructing initial date range starting from {}".format(OldIsoDate))
+        self.logging.detailed("Constructing initial date range starting from {}".format(OldIsoDate))
         
         # Loop from startDate to endDate
         while( NewIsoDate[0] >= self.STOP_YEAR ):
@@ -132,14 +132,51 @@ class UrlCollector (object):
             total_num = self.get_num(url)
 
             if ( total_num > 0 ):
-                self.collect_data(url, total_num)
+                self.collect_data(url, total_num, outputFile)
             if ( total_num > self.GITHUB_MAX_INDEX ):
-                self.outputStream.debug("{}+ urls detected. {} skipped".format(self.GITHUB_MAX_INDEX, total_num - self.GITHUB_MAX_INDEX))
+                self.logging.debug("{}+ urls detected. {} skipped".format(self.GITHUB_MAX_INDEX, total_num - self.GITHUB_MAX_INDEX))
+
+    # Program entry point and opening processes
+    def begin(self, language):
+        
+        self.LANGUAGE = language
+        assert not self.LANGUAGE is None, "Language must not be {} -> {}".format(None, self.LANGUAGE)
+
+        configuration = []
+        configuration.append("Language = {}".format(self.LANGUAGE))
+        configuration.append("Range = {} - {}".format(self.calculateIsoDateString(( self.INITIAL_ISO_YEAR, self.INITIAL_ISO_MONTH, self.INITIAL_ISO_DAY )), self.STOP_YEAR))
+        configuration.append("Skipped days = {}".format(self.SKIPPED_DAYS))
+        configuration.append("Sleep timeout = {}".format(self.SLEEP_TIMEOUT))
+        configuration.append("Start = {}".format(datetime.datetime.now()))
+
+        configuration_file = open("{}.configuration".format(self.LANGUAGE), "w")
+        for parameter in configuration:
+            self.logging.info(parameter)
+            configuration_file.write("{}\n".format(parameter))
+        configuration_file.flush()
+
+        outputFile = open("output_{}".format(self.LANGUAGE), "a")
+        outputFile.truncate(0)
+        # Brief file manipulation [END] #
+
+        self.crawl(outputFile)
+        
+        configuration_file("End = {}".format(datetime.datetime.now()))
+        
+        configuration_file.close()
+        outputFile.close()
+
+        self.end()
+
+    # Program termination point and closing processes
+    def end(self):
+        self.logging.info("Program ending")
+        self.logging.info("-" * self.STRING_REPEAT_CONSTANT)
 
     # Decrements date tuple
     def decrementDate(self, year, month, day, decrement):
-        assert( month >= 0 and month <= 12, "Invalid month specification" )
-        assert( day >= 0 and day <= 31, "Invalid date specification" )
+        assert month >= 0 and month <= 12, "Invalid month specification" 
+        assert day >= 0 and day <= 31, "Invalid date specification" 
 
         newYear = year
         newMonth = month
@@ -156,10 +193,10 @@ class UrlCollector (object):
                 newDay = maxDays(newMonth)
                 newYear -= 1
 
-        self.outputStream.debug("\t {}-{}-{} -> {}-{}-{}".format(day, month, year, newDay, newMonth, newYear))
+        self.logging.debug("\t - {}-{}-{} -> {}-{}-{}".format(day, month, year, newDay, newMonth, newYear))
 
-        assert( newMonth >= 0 and newMonth <= 12, "Invalid month value" )
-        assert( newDay >= 0 and newDay <= 31, "Invalid date value" )
+        assert newMonth >= 0 and newMonth <= 12, "Invalid month value" 
+        assert newDay >= 0 and newDay <= 31, "Invalid date value" 
 
         return ( newYear, newMonth, newDay )
 
@@ -169,16 +206,16 @@ class UrlCollector (object):
 
         if( self.SKIPPED_DAYS > 0 ):
             result = self.decrementDate(OldIsoDate[0], OldIsoDate[1], OldIsoDate[2], self.SKIPPED_DAYS)
-            self.outputStream.detailed("Decrementing date from {} to {}".format(OldIsoDate, result))
+            self.logging.detailed("Decrementing date from {} to {}".format(OldIsoDate, result))
         else:
             result = OldIsoDate      
-            self.outputStream.detailed("Setting date range to {} - {}".format(OldIsoDate, result))
+            self.logging.detailed("Setting date range to {} - {}".format(OldIsoDate, result))
 
         return result
 
     # Determine may days in a month
     def maxDays(self, month):
-        assert( month > 0 and month <= 12, "Invalid month specification" )
+        assert month > 0 and month <= 12, "Invalid month specification" 
 
         result = None
         if( month == 2 ):
@@ -188,9 +225,9 @@ class UrlCollector (object):
         else:
             result = 30
 
-        self.outputStream.debug("Max days for month {} is {}".format(month, result))
+        self.logging.debug("Max days for month {} is {}".format(month, result))
 
-        assert( not result is None, "Invalid month result" )
+        assert not result is None, "Invalid month result" 
         return result
 
     def calculateIsoDateString(self, isoDate):
@@ -202,7 +239,7 @@ class UrlCollector (object):
         dayString = ( "0{}".format(day) )[-2:]
 
         result = "{}-{}-{}".format(year, monthString, dayString) 
-        self.outputStream.debug("ISO DATE for {} is {}".format(isoDate, result))
+        self.logging.debug("ISO DATE for {} is {}".format(isoDate, result))
         return ( result )
 
 # -- START --- #
@@ -211,4 +248,4 @@ access_token = getpass.getpass("Input access token: \t")
 
 for language in [ 'Kotlin', 'Scala', 'Groovy' ]:
     uc = UrlCollector(log.Log.DETAILED, github_username, access_token)
-    uc.crawl(language)
+    uc.begin(language)
