@@ -142,6 +142,9 @@ class UrlCollector (object):
         self.LANGUAGE = language
         assert not self.LANGUAGE is None, "Language must not be {} -> {}".format(None, self.LANGUAGE)
 
+        output_directory = "output/{}".format(self.LANGUAGE)
+        os.makedirs(output_directory, exist_ok = True)
+
         configuration = []
         configuration.append("Language = {}".format(self.LANGUAGE))
         configuration.append("Range = {} - {}".format(self.calculateIsoDateString(( self.INITIAL_ISO_YEAR, self.INITIAL_ISO_MONTH, self.INITIAL_ISO_DAY )), self.STOP_YEAR))
@@ -149,13 +152,13 @@ class UrlCollector (object):
         configuration.append("Sleep timeout = {}".format(self.SLEEP_TIMEOUT))
         configuration.append("Start = {}".format(datetime.datetime.now()))
 
-        configuration_file = open("{}.configuration".format(self.LANGUAGE), "w")
+        configuration_file = open("{}/{}.configuration".format(output_directory, self.LANGUAGE), "w")
         for parameter in configuration:
             self.logging.info(parameter)
             configuration_file.write("{}\n".format(parameter))
         configuration_file.flush()
 
-        outputFile = open("{}.output".format(self.LANGUAGE), "a")
+        outputFile = open("{}/{}.output".format(output_directory, self.LANGUAGE), "a")
         outputFile.truncate(0)
         # Brief file manipulation [END] #
 
