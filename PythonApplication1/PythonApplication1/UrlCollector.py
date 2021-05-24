@@ -145,27 +145,27 @@ class UrlCollector (object):
         output_directory = "output/{}".format(self.LANGUAGE)
         os.makedirs(output_directory, exist_ok = True)
 
-        configuration = []
-        configuration.append("Language = {}".format(self.LANGUAGE))
-        configuration.append("Range = {} - {}".format(self.calculateIsoDateString(( self.INITIAL_ISO_YEAR, self.INITIAL_ISO_MONTH, self.INITIAL_ISO_DAY )), self.STOP_YEAR))
-        configuration.append("Skipped days = {}".format(self.SKIPPED_DAYS))
-        configuration.append("Sleep timeout = {}".format(self.SLEEP_TIMEOUT))
-        configuration.append("Start = {}".format(datetime.datetime.now()))
+        configuration_settings = []
+        configuration_settings.append("Language = {}".format(self.LANGUAGE))
+        configuration_settings.append("Range = {} - {}".format(self.calculateIsoDateString(( self.INITIAL_ISO_YEAR, self.INITIAL_ISO_MONTH, self.INITIAL_ISO_DAY )), self.STOP_YEAR))
+        configuration_settings.append("Skipped days = {}".format(self.SKIPPED_DAYS))
+        configuration_settings.append("Sleep timeout = {}".format(self.SLEEP_TIMEOUT))
+        configuration_settings.append("Start = {}".format(datetime.datetime.now()))
 
         configuration_file = open("{}/{}.configuration".format(output_directory, self.LANGUAGE), "w")
-        for parameter in configuration:
+        for parameter in configuration_settings:
             self.logging.info(parameter)
             configuration_file.write("{}\n".format(parameter))
-        configuration_file.flush()
+        configuration_file.flush() # Write contents to file
 
         outputFile = open("{}/{}.output".format(output_directory, self.LANGUAGE), "a")
-        outputFile.truncate(0)
-        # Brief file manipulation [END] #
+        outputFile.truncate(0) # Clear any data in file
 
         self.crawl(outputFile)
         
         configuration_file("End = {}".format(datetime.datetime.now()))
-        
+
+        # Close files
         configuration_file.close()
         outputFile.close()
 
