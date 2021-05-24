@@ -53,7 +53,7 @@ class UrlCollector (object):
         self.GITHUB_ACCESS_TUPLE = ( self.GITHUB_USERNAME, self.ACCESS_TOKEN )
         self.logging = log.Log(logLevel)
 
-        # Request data from Github server
+    # Request data from Github server
     def request(self, url, github_account):
         self.logging.debug("Checking url {}".format(url))
         result = requests.get(url, auth=( github_account )).json()
@@ -61,6 +61,7 @@ class UrlCollector (object):
         time.sleep(self.SLEEP_TIMEOUT) # Timeout after each request to prevent api overload
         return result
 
+    # Gets number of accessible urls from data response
     def get_num(self, url):
         total_num = 0
         json_data = self.request(url, self.GITHUB_ACCESS_TUPLE)
@@ -73,12 +74,14 @@ class UrlCollector (object):
 
         return total_num
 
+    # Writes received data to output file
     def writedata(self, repo_dicts, i, file):
         
         repo_dicti = repo_dicts[i]
         file.writelines("{} {} {}\n".format(repo_dicti['stargazers_count'], repo_dicti['clone_url'], repo_dicti['forks_count']))
 
-    def collect_data(self, base_url, total_num, outputFile):
+    # Collects data per page
+    def collect_paginated_data(self, base_url, total_num, outputFile):
         num = int(total_num / self.MAX_RESULTS_PER_PAGE) + 1
 
         # Iterate through each page in accessible output
@@ -106,7 +109,8 @@ class UrlCollector (object):
                 time.sleep(self.SLEEP_TIMEOUT * 3) # Extra timeout, in case too many api events are being called
         self.logging.info("-" * self.STRING_REPEAT_CONSTANT)
 
-    def crawl(self, outputFile):          
+    # Core class function, requests data from Github and saves valid responses
+    def crawl(self, outputFile):
         self.logging.info("Processing urls for {}".format(self.LANGUAGE))
         self.logging.info("-" * self.STRING_REPEAT_CONSTANT)
                
@@ -132,7 +136,7 @@ class UrlCollector (object):
             total_num = self.get_num(url)
 
             if ( total_num > 0 ):
-                self.collect_data(url, total_num, outputFile)
+                self.collect_paginated_data(url, total_num, outputFile)
             if ( total_num > self.GITHUB_MAX_INDEX ):
                 self.logging.debug("{}+ urls detected. {} skipped".format(self.GITHUB_MAX_INDEX, total_num - self.GITHUB_MAX_INDEX))
 
@@ -141,6 +145,8 @@ class UrlCollector (object):
         
         self.LANGUAGE = language
         assert not self.LANGUAGE is None, "Language must not be {} -> {}".format(None, self.LANGUAGE)
+
+        self.checkRateLimit()
 
         output_directory = "output/{}".format(self.LANGUAGE)
         os.makedirs(output_directory, exist_ok = True)
@@ -233,14 +239,21 @@ class UrlCollector (object):
         assert not result is None, "Invalid month result" 
         return result
 
+    # Returns string formatted ISO date
     def calculateIsoDateString(self, isoDate):
         year = isoDate[0]
         month = isoDate[1]
         day = isoDate[2]
 
-        monthString = ( "0{}".format(month) )[-2:]
-        dayString = ( "0{}".format(day) )[-2:]
+        monthString = ( "0{}".format(month) )[-2:] # Get last 2 characters of formatted month string
+        dayString = ( "0{}".format(day) )[-2:] # Get last 2 characters of formatted day string
 
         result = "{}-{}-{}".format(year, monthString, dayString) 
         self.logging.debug("ISO DATE for {} is {}".format(isoDate, result))
         return ( result )
+
+    # Checks if user access tuple is authenticated
+    def checkRateLimit(self):
+        response = self.request("http://api.github.com/rate_limit", self.GITHUB_ACCESS_TUPLE)
+        isAuthenticated = ( 30 == int(( response["resources"]["search"]["limit"] )) )
+        self.logging.info("Authenticated user and increased api access = {}".format(isAuthenticated))
