@@ -88,7 +88,7 @@ class UrlCollector (object):
 
             # Update url to include page information
             url = "{}&page={}".format(base_url, pageNum_index)
-            self.logging.info("\t - Fetching page: {}".format(pageNum_index))
+            self.logging.info("Fetching page: {}".format(pageNum_index))
             data = self.request(url, self.GITHUB_ACCESS_TUPLE)
         
             if( "items" in data ):
@@ -101,10 +101,11 @@ class UrlCollector (object):
                     date_response_index += 1
 
                 outputFile.flush()
-                self.logging.debug("Saved {} entries".format(data_response_length))
+                self.logging.debug("\t - Saved {} entries".format(data_response_length))
             else:
                 self.logging.warning("Request failure: {}".format(data["message"]))
                 time.sleep(self.SLEEP_TIMEOUT * 3) # Extra timeout, in case too many api events are being called
+        self.logging.info("-" * self.STRING_REPEAT_CONSTANT)
 
     def crawl(self, outputFile):          
         self.logging.info("Processing urls for {}".format(self.LANGUAGE))
@@ -155,7 +156,7 @@ class UrlCollector (object):
             configuration_file.write("{}\n".format(parameter))
         configuration_file.flush()
 
-        outputFile = open("output_{}".format(self.LANGUAGE), "a")
+        outputFile = open("{}.output".format(self.LANGUAGE), "a")
         outputFile.truncate(0)
         # Brief file manipulation [END] #
 
@@ -193,7 +194,7 @@ class UrlCollector (object):
                 newDay = maxDays(newMonth)
                 newYear -= 1
 
-        self.logging.debug("\t - {}-{}-{} -> {}-{}-{}".format(day, month, year, newDay, newMonth, newYear))
+        self.logging.debug("Updated date range {}-{}-{} -> {}-{}-{}".format(day, month, year, newDay, newMonth, newYear))
 
         assert newMonth >= 0 and newMonth <= 12, "Invalid month value" 
         assert newDay >= 0 and newDay <= 31, "Invalid date value" 
@@ -246,6 +247,6 @@ class UrlCollector (object):
 github_username = input("Input your Github username (needed to increase the number of results):\t")
 access_token = getpass.getpass("Input access token: \t")
 
-for language in [ 'Kotlin', 'Scala', 'Groovy' ]:
-    uc = UrlCollector(log.Log.DETAILED, github_username, access_token)
+for language in [ 'Kotlin', 'Scala', 'Groovy', 'Closure', 'Jython', 'JRuby', 'Java' ]:
+    uc = UrlCollector(log.Log.DEBUG, github_username, access_token)
     uc.begin(language)
