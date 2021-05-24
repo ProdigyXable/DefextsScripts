@@ -2,7 +2,6 @@
 import requests
 import time
 import os
-import getpass
 import math
 import log
 import datetime
@@ -242,11 +241,3 @@ class UrlCollector (object):
         result = "{}-{}-{}".format(year, monthString, dayString) 
         self.logging.debug("ISO DATE for {} is {}".format(isoDate, result))
         return ( result )
-
-# -- START --- #
-github_username = input("Input your Github username (needed to increase the number of results):\t")
-access_token = getpass.getpass("Input access token: \t")
-
-for language in [ 'Kotlin', 'Scala', 'Groovy', 'Closure', 'Jython', 'JRuby', 'Java' ]:
-    uc = UrlCollector(log.Log.DEBUG, github_username, access_token)
-    uc.begin(language)

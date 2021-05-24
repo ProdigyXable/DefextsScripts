@@ -5,7 +5,7 @@
     <ProjectGuid>ebfe0ae3-39a6-4307-881b-93d1c4ec6f3a</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>collect_urls.py</StartupFile>
+    <StartupFile>collect.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -25,7 +25,10 @@
     <Compile Include="log.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="collect_urls.py">
+    <Compile Include="UrlCollector.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="collect.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

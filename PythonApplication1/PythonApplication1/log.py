@@ -9,9 +9,9 @@ class Log (object):
     LOG_LEVEL = 0
 
     INFO = 1
-    DETAILED = 10
-    DEBUG = 100
-    WARNING = 1000
+    WARNING = 10
+    DETAILED = 100
+    DEBUG = 1000
 
     def print(self, message):
         self.log(message, -1)
