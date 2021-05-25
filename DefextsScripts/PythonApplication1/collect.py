@@ -1,5 +1,5 @@
 import UrlCollector as collector
-import log
+from log import VerboseLevel
 import os
 import getpass
 
@@ -17,5 +17,5 @@ else:
 LANGUAGES_CONFIGURATION = [ 'Kotlin', 'Scala', 'Groovy', 'Closure', 'Jython', 'JRuby', 'Java' ]
 
 for language in LANGUAGES_CONFIGURATION:
-    uc = collector.UrlCollector(log.Log.DEBUG, github_username, access_token)
+    uc = collector.UrlCollector(VerboseLevel.DEBUG, github_username, access_token)
     uc.begin(language)

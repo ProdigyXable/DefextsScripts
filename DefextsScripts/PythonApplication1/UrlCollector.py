@@ -3,7 +3,7 @@ import requests
 import time
 import os
 import math
-import log
+from log import Log
 import datetime
 
 class UrlCollector (object):
@@ -51,7 +51,7 @@ class UrlCollector (object):
         assert not self.ACCESS_TOKEN is None, "Access token must not be {}".format(None)
 
         self.GITHUB_ACCESS_TUPLE = ( self.GITHUB_USERNAME, self.ACCESS_TOKEN )
-        self.logging = log.Log(logLevel)
+        self.logging = Log(logLevel)
 
     # Request data from Github server
     def request(self, url, github_account):
