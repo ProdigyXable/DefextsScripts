@@ -196,10 +196,10 @@ class UrlCollector (object):
         elif( newDay <= 1 ):
             if( newMonth > 1 ):
                 newMonth -= 1
-                newDay = maxDays(newMonth)
+                newDay = self.maxDays(newMonth)
             else:
                 newMonth = 12
-                newDay = maxDays(newMonth)
+                newDay = self.maxDays(newMonth)
                 newYear -= 1
 
         self.logging.debug("Updated date range {}-{}-{} -> {}-{}-{}".format(day, month, year, newDay, newMonth, newYear))
