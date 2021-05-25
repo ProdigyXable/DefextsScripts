@@ -103,11 +103,11 @@ class UrlCollector (object):
                     date_response_index += 1
 
                 outputFile.flush()
-                self.logging.debug("\t - Saved {} entries".format(data_response_length))
+                self.logging.debug("{} entries written".format(data_response_length))
             else:
                 self.logging.warning("Request failure: {}".format(data["message"]))
                 time.sleep(self.SLEEP_TIMEOUT * 3) # Extra timeout, in case too many api events are being called
-        self.logging.info("-" * self.STRING_REPEAT_CONSTANT)
+            self.logging.info("-" * self.STRING_REPEAT_CONSTANT)
 
     # Core class function, requests data from Github and saves valid responses
     def crawl(self, outputFile):
@@ -139,6 +139,7 @@ class UrlCollector (object):
                 self.collect_paginated_data(url, total_num, outputFile)
             if ( total_num > self.GITHUB_MAX_INDEX ):
                 self.logging.debug("{}+ urls detected. {} skipped".format(self.GITHUB_MAX_INDEX, total_num - self.GITHUB_MAX_INDEX))
+            self.logging.info("==" * self.STRING_REPEAT_CONSTANT)
 
     # Program entry point and opening processes
     def begin(self, language):
@@ -255,5 +256,11 @@ class UrlCollector (object):
     # Checks if user access tuple is authenticated
     def checkRateLimit(self):
         response = self.request("http://api.github.com/rate_limit", self.GITHUB_ACCESS_TUPLE)
-        isAuthenticated = ( 30 == int(( response["resources"]["search"]["limit"] )) )
+        search_limit_per_minute = int(( response["resources"]["search"]["limit"] ))
+        isAuthenticated = ( 30 == search_limit_per_minute )
+
+
         self.logging.info("Authenticated user and increased api access = {}".format(isAuthenticated))
+
+        self.SLEEP_TIMEOUT = 60 / search_limit_per_minute
+        self.logging.detailed("Sleep timeoout set to {}".format(self.SLEEP_TIMEOUT))

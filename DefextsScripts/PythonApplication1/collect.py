@@ -4,8 +4,10 @@ import os
 import getpass
 
 # -- START --- #
-access_file = open("details.access", "r")
-if( os.path.exists(access_file.name) ):
+access_file_name = "details.access"
+
+if( os.path.exists(access_file_name) ):
+    access_file = open(access_file_name, "r")
     details = access_file.readlines()
     assert  len(details) == 2, "Invalid access content"
     github_username = details[0].strip()
