@@ -2,7 +2,7 @@ import requests
 import time
 import os
 import math
-from Utility.log import Log
+from HelperUtility.log import Log
 import datetime
 
 class UrlCollector (object):
