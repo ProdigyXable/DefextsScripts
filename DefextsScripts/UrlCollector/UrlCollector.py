@@ -54,7 +54,7 @@ class UrlCollector (object):
 
     # Request data from Github server
     def request(self, url, github_account):
-        self.logging.debug("Checking url {}".format(url))
+        self.logging.detailed("Checking url {}".format(url))
         result = requests.get(url, auth=( github_account )).json()
 
         time.sleep(self.SLEEP_TIMEOUT) # Timeout after each request to prevent api overload
@@ -106,7 +106,7 @@ class UrlCollector (object):
             else:
                 self.logging.warning("Request failure: {}".format(data["message"]))
                 time.sleep(self.SLEEP_TIMEOUT * 3) # Extra timeout, in case too many api events are being called
-            self.logging.info("-" * self.STRING_REPEAT_CONSTANT)
+            self.logging.detailed("-" * self.STRING_REPEAT_CONSTANT)
 
     # Core class function, requests data from Github and saves valid responses
     def crawl(self, outputFile):
@@ -202,7 +202,7 @@ class UrlCollector (object):
                 newDay = self.maxDays(newMonth)
                 newYear -= 1
 
-        self.logging.debug("Updated date range {}-{}-{} -> {}-{}-{}".format(day, month, year, newDay, newMonth, newYear))
+        self.logging.detailed("Updated date range {}-{}-{} -> {}-{}-{}".format(month, day, year, newMonth, newDay, newYear))
 
         assert newMonth >= 0 and newMonth <= 12, "Invalid month value" 
         assert newDay >= 0 and newDay <= 31, "Invalid date value" 
