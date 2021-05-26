@@ -28,7 +28,7 @@ class Log (object):
         assert not self.PRETTIFY_LOG_OUTPUT_SPACE is None, "Invalid value of {} for prettification ".format(self.PRETTIFY_LOG_OUTPUT_SPACE)
         assert ( type(self.PRETTIFY_LOG_OUTPUT_SPACE) is int and self.PRETTIFY_LOG_OUTPUT_SPACE > 0 )
 
-        self.info("Setting logging verbosity to {}".format(logLevel.name))
+        self.info("Initializing logging verbosity to {}".format(logLevel.name))
 
     def prettifyLogOutput(self):
         maxCharLength = 0
