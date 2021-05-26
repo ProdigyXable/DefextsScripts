@@ -18,7 +18,8 @@ class Log (object):
     PRETTIFY_MAP = {}
 
     def print(self, message):
-        self.log(message, VerboseLevel.MINIMAL)
+        forced_append = self.PRETTIFY_MAP[VerboseLevel.MINIMAL]
+        self.log("[{}] {}[MINIMAL] {}".format(datetime.datetime.now(), " " * forced_append, message), VerboseLevel.INFO)
 
     def __init__(self, logLevel):
         self.LOG_LEVEL = logLevel
