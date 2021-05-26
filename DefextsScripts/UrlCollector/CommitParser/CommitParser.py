@@ -11,4 +11,8 @@ class CommitParser (object):
 
     def __init__(self, verbose, filepath):
         self.logger = Log(verbose)
-        
+        self.logger.info("Loading configuration details from {}".format(filepath))
+
+
+    def begin(self):
+        pass
