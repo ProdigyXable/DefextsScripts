@@ -170,7 +170,7 @@ class UrlCollector (object):
 
         self.crawl(outputFile)
         
-        configuration_file("End = {}".format(datetime.datetime.now()))
+        configuration_file.write("End = {}".format(datetime.datetime.now()))
 
         # Close files
         configuration_file.close()
