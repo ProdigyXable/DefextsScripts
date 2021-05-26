@@ -52,10 +52,10 @@ def main():
     
     # Get user input to project file file
     while ( ( proceedAnswer != "yes" ) and ( proceedAnswer != "y" ) ):
-        commitFilePath = raw_input("Input a file containing a link to a git repository:\t").strip()
-        SCRIPT_FILEPATH = raw_input("Input empty folder to hold script data:\t").strip()
+        commitFilePath = input("Input a file containing a link to a git repository:\t").strip()
+        SCRIPT_FILEPATH = input("Input empty folder to hold script data:\t").strip()
         TEMP_FILEPATH = SCRIPT_FILEPATH + "/temp"
-        proceedAnswer = raw_input("Provided filepath is \"" + commitFilePath + "\". This will be downloaded in \"" + TEMP_FILEPATH + "\". Do you wish to proceed?:\t")
+        proceedAnswer = input("Provided filepath is \"" + commitFilePath + "\". This will be downloaded in \"" + TEMP_FILEPATH + "\". Do you wish to proceed?:\t")
         if ( not os.path.isfile(commitFilePath) ):
             print("Input filepath(s) do not point to existing files / folders! Try again!")
             proceedAnswer = None
@@ -64,7 +64,7 @@ def main():
             print("Proceeding with program...")
         print("\n")
 
-    SCRIPT_OUTPUT_NAME += raw_input("Input output filename suffix (" + SCRIPT_OUTPUT_NAME + "<suffix>) :\t")
+    SCRIPT_OUTPUT_NAME += input("Input output filename suffix (" + SCRIPT_OUTPUT_NAME + "<suffix>) :\t")
 
     # Output content of project list file
     with open(commitFilePath, 'r') as projectFile:
