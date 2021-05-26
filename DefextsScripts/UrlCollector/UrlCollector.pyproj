@@ -2,16 +2,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>ebfe0ae3-39a6-4307-881b-93d1c4ec6f3a</ProjectGuid>
-    <ProjectHome>
-    </ProjectHome>
+    <ProjectGuid>b4ed6045-3f63-4941-922c-632f94adcc8c</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
     <StartupFile>collect.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>UrlCollection</Name>
-    <RootNamespace>PythonApplication1</RootNamespace>
+    <Name>UrlCollector</Name>
+    <RootNamespace>UrlCollector</RootNamespace>
+    <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,15 +22,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="log.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="UrlCollector.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="collect.py">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="collect.py" />
+    <Compile Include="log.py" />
+    <Compile Include="UrlCollector.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
