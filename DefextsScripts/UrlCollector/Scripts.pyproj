@@ -5,7 +5,7 @@
     <ProjectGuid>b4ed6045-3f63-4941-922c-632f94adcc8c</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>UrlCollector\collect.py</StartupFile>
+    <StartupFile>CommitParser\parse.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
