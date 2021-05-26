@@ -3,13 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.1169
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Phase 1", "Phase 1", "{942EE972-BD2B-41A9-83BB-449165F8EC76}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Phase 2", "Phase 2", "{A7663184-5423-4BB0-9C58-E4923149EF6A}"
-EndProject
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "UrlCollector", "UrlCollector\UrlCollector.pyproj", "{B4ED6045-3F63-4941-922C-632F94ADCC8C}"
-EndProject
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "CommitParser", "CommitParser\CommitParser.pyproj", "{ABEDDE34-8C5A-4F47-8FA0-702A6BFC74CB}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Scripts", "UrlCollector\Scripts.pyproj", "{B4ED6045-3F63-4941-922C-632F94ADCC8C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,15 +13,9 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{B4ED6045-3F63-4941-922C-632F94ADCC8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B4ED6045-3F63-4941-922C-632F94ADCC8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ABEDDE34-8C5A-4F47-8FA0-702A6BFC74CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ABEDDE34-8C5A-4F47-8FA0-702A6BFC74CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{B4ED6045-3F63-4941-922C-632F94ADCC8C} = {942EE972-BD2B-41A9-83BB-449165F8EC76}
-		{ABEDDE34-8C5A-4F47-8FA0-702A6BFC74CB} = {A7663184-5423-4BB0-9C58-E4923149EF6A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {468A63DC-C684-46A6-8D5A-D97ED3207B19}
