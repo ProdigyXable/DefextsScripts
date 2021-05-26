@@ -1,4 +1,4 @@
-from HelperUtility import log
+from HelperUtility.log import Log
 
 class CommitParser (object):
     """Class to parse all of a repository's commit, looking for those satisfying certain criteria"""
@@ -10,4 +10,5 @@ class CommitParser (object):
     logger = None
 
     def __init__(self, verbose, filepath):
-        self.logger = log(verbose)
+        self.logger = Log(verbose)
+        
