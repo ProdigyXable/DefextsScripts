@@ -26,6 +26,9 @@
     <Compile Include="CommitParser\CommitParser.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="CommitParser\parse.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="UrlCollector\collect.py" />
     <Compile Include="CommitParser\oldCommitParser.py" />
     <Compile Include="HelperUtility\log.py" />
