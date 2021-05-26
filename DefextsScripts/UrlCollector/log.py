@@ -55,7 +55,7 @@ class Log (object):
         self.log("[{}] {}[DEBUG] {}".format(datetime.datetime.now(), " " * forced_append, message), VerboseLevel.DEBUG)
 
     def warning(self, message):
-        forced_append = self.PRETTIFY_MAP[VerboseLevel.Warning]
+        forced_append = self.PRETTIFY_MAP[VerboseLevel.WARNING]
 
         self.log("[{}] {}[WARNING] {}".format(datetime.datetime.now(), " " * forced_append, message), VerboseLevel.WARNING)
 
