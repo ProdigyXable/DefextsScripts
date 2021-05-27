@@ -16,12 +16,14 @@ class Log (object):
 
     PRETTIFY_LOG_OUTPUT_SPACE = None
     PRETTIFY_MAP = {}
+    def clone(self):
+        return self
 
     def print(self, message):
         prettify_string = self.PRETTIFY_MAP[VerboseLevel.MINIMAL]
         self.log("[{}] {}[MINIMAL] {}".format(datetime.datetime.now(), " " * prettify_string, message), VerboseLevel.INFO)
 
-    def __init__(self, logLevel):
+    def __init__(self, logLevel = VerboseLevel.INFO):
         self.LOG_LEVEL = logLevel
         self.prettifyLogOutput()
         

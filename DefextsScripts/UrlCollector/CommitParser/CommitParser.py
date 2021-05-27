@@ -19,7 +19,7 @@ class CommitParser (object):
         self.logger.info("Loading configuration details from {}".format(filepath))
         
         for keyword in self.CRITERIA_KEYWORDS:
-            self.logger.info("Queried keyword: {}".format(keyword.lower()))
+            self.logger.info("Queried keyword: '{}'".format(keyword.lower()))
 
         config_file = open(filepath, "r")
         configuration_data = config_file.readlines()
@@ -30,10 +30,11 @@ class CommitParser (object):
         self.logger.detailed("Output directory = {}".format(self.OUTPUT_DIRECTORY))
         
         self.DATASET_FILEPATH = configuration_data[1].strip()
-        assert os.path.exists(self.DATASET_FILEPATH), "Invalid input filepath specified: {}".format(self.DATASET_FILEPATH)
+        assert os.path.exists(self.DATASET_FILEPATH), "Invalid input filepath specified: '{}'".format(self.DATASET_FILEPATH)
         self.logger.detailed("Input filepath = {}".format(self.DATASET_FILEPATH))
 
     def begin(self):
         input_file = open(self.DATASET_FILEPATH, "r")
         input_data = input_file.readlines()
         self.logger.info("{} projects detected".format(len(input_data)))
+
