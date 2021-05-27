@@ -18,8 +18,8 @@ class Log (object):
     PRETTIFY_MAP = {}
 
     def print(self, message):
-        forced_append = self.PRETTIFY_MAP[VerboseLevel.MINIMAL]
-        self.log("[{}] {}[MINIMAL] {}".format(datetime.datetime.now(), " " * forced_append, message), VerboseLevel.INFO)
+        prettify_string = self.PRETTIFY_MAP[VerboseLevel.MINIMAL]
+        self.log("[{}] {}[MINIMAL] {}".format(datetime.datetime.now(), " " * prettify_string, message), VerboseLevel.INFO)
 
     def __init__(self, logLevel):
         self.LOG_LEVEL = logLevel
@@ -41,24 +41,24 @@ class Log (object):
             self.PRETTIFY_MAP[v] = self.PRETTIFY_LOG_OUTPUT_SPACE - len(v.name)
 
     def info(self, message):
-        forced_append = self.PRETTIFY_MAP[VerboseLevel.INFO]
+        prettify_string = self.PRETTIFY_MAP[VerboseLevel.INFO]
 
-        self.log("[{}] {}[INFO] {}".format(datetime.datetime.now(), " " * forced_append, message), VerboseLevel.INFO)
+        self.log("[{}] {}[INFO] {}".format(datetime.datetime.now(), " " * prettify_string, message), VerboseLevel.INFO)
 
     def detailed(self, message):
-        forced_append = self.PRETTIFY_MAP[VerboseLevel.DETAILED]
+        prettify_string = self.PRETTIFY_MAP[VerboseLevel.DETAILED]
 
-        self.log("[{}] {}[DETAILED] {}".format(datetime.datetime.now(), " " * forced_append, message), VerboseLevel.DETAILED)
+        self.log("[{}] {}[DETAILED] {}".format(datetime.datetime.now(), " " * prettify_string, message), VerboseLevel.DETAILED)
 
     def debug(self, message):
-        forced_append = self.PRETTIFY_MAP[VerboseLevel.DEBUG]
+        prettify_string = self.PRETTIFY_MAP[VerboseLevel.DEBUG]
 
-        self.log("[{}] {}[DEBUG] {}".format(datetime.datetime.now(), " " * forced_append, message), VerboseLevel.DEBUG)
+        self.log("[{}] {}[DEBUG] {}".format(datetime.datetime.now(), " " * prettify_string, message), VerboseLevel.DEBUG)
 
     def warning(self, message):
-        forced_append = self.PRETTIFY_MAP[VerboseLevel.WARNING]
+        prettify_string = self.PRETTIFY_MAP[VerboseLevel.WARNING]
 
-        self.log("[{}] {}[WARNING] {}".format(datetime.datetime.now(), " " * forced_append, message), VerboseLevel.WARNING)
+        self.log("[{}] {}[WARNING] {}".format(datetime.datetime.now(), " " * prettify_string, message), VerboseLevel.WARNING)
 
     def log(self, message, level):
         if self.LOG_LEVEL >= level:
