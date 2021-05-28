@@ -65,8 +65,9 @@ class CommitParser (object):
         while len(unfinished_indexes) > 0:
             finished_indexes = []
 
-            
+            time.sleep(self.SLEEP_TIMER) # Sleep to prevent overconsumption of CPU resources
 
+            # Iterate through tasks / futures
             for index in unfinished_indexes:
                 future = self.FUTURES[index]
                 
@@ -74,14 +75,14 @@ class CommitParser (object):
                     finished_indexes.append(index)
             
             unfinished_indexes = self.removedCompletedIndexes(unfinished_indexes, finished_indexes)
-
             current_tasks = len(unfinished_indexes)
             
-            # Give updates to user
+            # Output executor task progress
             percent_completed = 100 * (total_tasks - current_tasks) / total_tasks
-            completed_string = "|" * int(percent_completed)
+            completed_string = "=" * int(percent_completed)
             uncompleted_string = " " * (100 - int(percent_completed))
-            self.logger.print("[{}%] [{}{}]".format(percent_completed, completed_string, uncompleted_string))
+
+            self.logger.print("[{:6.2f}%] [{}{}]".format(percent_completed, completed_string, uncompleted_string))
    
     def end(self):
         self.logger.info("Shutting down thread executor")
