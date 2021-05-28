@@ -54,11 +54,15 @@ class UrlCollector (object):
 
     # Request data from Github server
     def request(self, url, github_account):
+        result = {}
         self.logging.detailed("Checking url {}".format(url))
-        result = requests.get(url, auth=( github_account )).json()
-
-        time.sleep(self.SLEEP_TIMEOUT) # Timeout after each request to prevent api overload
-        return result
+        try:
+            result = requests.get(url, auth=( github_account )).json()
+        except Exception as e:
+            self.logging.warning("Exception detected {}".format(e.args))
+        finally:
+            time.sleep(self.SLEEP_TIMEOUT) # Timeout after each request to prevent api overload
+            return result
 
     # Gets number of accessible urls from data response
     def get_num(self, url):
