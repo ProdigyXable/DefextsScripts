@@ -1,5 +1,6 @@
-import UrlCollector as collector
 from HelperUtility.log import VerboseLevel
+
+import UrlCollector as collector
 import os
 import getpass
 
