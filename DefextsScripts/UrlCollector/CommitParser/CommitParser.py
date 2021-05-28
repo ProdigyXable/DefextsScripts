@@ -31,14 +31,17 @@ class CommitParser (object):
         for keyword in self.CRITERIA_KEYWORDS:
             self.logger.info("Queried keyword: '{}'".format(keyword.lower()))
 
+        # Read configuration file
         config_file = open(filepath, "r")
         configuration_data = config_file.readlines()
         assert len(configuration_data) >= 2, "Invalid content of {}".format(filepath)
         
+        # Setup output directory
         self.OUTPUT_DIRECTORY = configuration_data[0].strip()
         os.makedirs(self.OUTPUT_DIRECTORY, exist_ok = True)
         self.logger.detailed("Output directory = {}".format(self.OUTPUT_DIRECTORY))
         
+        # Read primary input file
         self.DATASET_FILEPATH = configuration_data[1].strip()
         assert os.path.exists(self.DATASET_FILEPATH), "Invalid input filepath specified: '{}'".format(self.DATASET_FILEPATH)
         self.logger.detailed("Input filepath = {}".format(self.DATASET_FILEPATH))
@@ -48,16 +51,13 @@ class CommitParser (object):
         input_data = input_file.readlines()
         self.logger.info("{} projects detected".format(len(input_data)))
         
-        for item in input_data:
-            item = item.strip()
-            future = self.tm.submit(self.process, item)
+        # Send potential tasks to executor
+        for project in input_data:
+            project = project.strip()
+            future = self.tm.submit(self.process, project)
             self.FUTURES.append(future)
-    
-    def removedCompletedIndexes(self, unfinished, finished):
-        for item in finished:
-            unfinished.remove(item)
-        return unfinished
 
+    # Give progress updates as executor tasks complete
     def wait(self):
         total_tasks = len(self.FUTURES)
         unfinished_indexes = list(range(0, total_tasks))
@@ -65,7 +65,7 @@ class CommitParser (object):
         while len(unfinished_indexes) > 0:
             finished_indexes = []
 
-            time.sleep(self.SLEEP_TIMER)
+            
 
             for index in unfinished_indexes:
                 future = self.FUTURES[index]
@@ -76,7 +76,12 @@ class CommitParser (object):
             unfinished_indexes = self.removedCompletedIndexes(unfinished_indexes, finished_indexes)
 
             current_tasks = len(unfinished_indexes)
-            self.logger.detailed("{} remaining tasks incompleted ({}%)".format(current_tasks, 100 * (total_tasks - current_tasks) / total_tasks))
+            
+            # Give updates to user
+            percent_completed = 100 * (total_tasks - current_tasks) / total_tasks
+            completed_string = "|" * int(percent_completed)
+            uncompleted_string = " " * (100 - int(percent_completed))
+            self.logger.print("[{}%] [{}{}]".format(percent_completed, completed_string, uncompleted_string))
    
     def end(self):
         self.logger.info("Shutting down thread executor")
@@ -89,3 +94,8 @@ class CommitParser (object):
             ct.begin(project)
         except Exception as e:
             self.logger.warning("{} {}".format(type(e), e.args))
+
+    def removedCompletedIndexes(self, unfinished, finished):
+        for item in finished:
+            unfinished.remove(item)
+        return unfinished

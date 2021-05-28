@@ -13,19 +13,19 @@ class CommitTask(object):
         self.logger = logger
 
     def info(self, message):
-        self.logger.info("\t[THREAD-{}] {}".format(self.NAME, message))
+        self.logger.info("\t<T_{}> {}".format(self.NAME, message))
 
     def warning(self, message):
-        self.logger.warning("\t[THREAD-{}] {}".format(self.NAME, message))
+        self.logger.warning("\t<T_{}> {}".format(self.NAME, message))
 
     def detailed(self, message):
-        self.logger.detailed("\t[THREAD-{}] {}".format(self.NAME, message))
+        self.logger.detailed("\t<T_{}> {}".format(self.NAME, message))
 
     def debug(self, message):
-        self.logger.debug("\t[THREAD-{}] {}".format(self.NAME, message))
+        self.logger.debug("\t<T_{}> {}".format(self.NAME, message))
 
     def print(self, message):
-        self.logger.minimal("\t[THREAD-{}] {}".format(self.NAME, message))
+        self.logger.minimal("\t<T_{}> {}".format(self.NAME, message))
 
     def begin(self, project):
         self.info("Processing '{}'".format(project))  
@@ -39,19 +39,19 @@ class CommitTask(object):
         self.info("Task has completed")
 
     def downloadProject(self, project):
-        self.info("Downloading '{}'".format(project))
+        self.detailed("Downloading '{}'".format(project))
 
         result = None
         return result
 
     def getCommits(self, project):
-        self.info("Retrieving commits froms '{}'".format(project))
+        self.detailed("Retrieving commits froms '{}'".format(project))
 
         result = None
         return result
 
     def filterCommits(self, project):
-        self.info("Filtering commits from '{}'".format(project))
+        self.detailed("Filtering commits from '{}'".format(project))
 
         result = None
         return result
