@@ -71,7 +71,7 @@ class CommitTask(object):
             
             commits = self.getCommits(project, original_repo)
 
-            filtered_commits = self.filterCommits(project, commits, checked_commits)
+            filtered_commits = self.filterCommitsOnKeywords(project, commits, checked_commits)
             checked_commits.update(commits)
 
             satisfactory_commits.update(filtered_commits)
@@ -123,7 +123,7 @@ class CommitTask(object):
         self.debug("Retrieving {} commits from '{}'".format(len(result), project))
         return result             
 
-    def filterCommits(self, project, commits, already_checked_commits):
+    def filterCommitsOnKeywords(self, project, commits, already_checked_commits):
         # For efficiency, only checked commits we have not already looked at
         unchecked_commits = list(filter(lambda com: CommitTask.getUncheckedCommits( com, already_checked_commits), commits))
         
