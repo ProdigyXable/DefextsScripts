@@ -11,7 +11,7 @@ class CommitParser (object):
     CRITERIA_KEYWORDS = [ "fix", "add", "change", "modify", "remove", "error", "repair", "issue", "resolve", "solve" ]
     
     MAX_WORKER_THREADS = 4
-    SLEEP_TIMER = 1
+    SLEEP_TIMER = 10
 
     URLS = []
     FUTURES = []
@@ -64,37 +64,40 @@ class CommitParser (object):
     # Give progress updates as executor tasks complete
     def wait(self):
         total_tasks = len(self.FUTURES)
-        unfinished_indexes = list(range(0, total_tasks))
-        problematic_indexes = []
+        unfinished_tasks_index_list = list(range(0, total_tasks))
+        problematic_tasks_index_list = []
         
-        while len(unfinished_indexes) > 0:
+        while len(unfinished_tasks_index_list) > 0:
             finished_indexes = []
 
             time.sleep(self.SLEEP_TIMER) # Sleep to prevent overconsumption of CPU resources
 
             # Iterate through tasks / futures
-            for index in unfinished_indexes:
-                
+            for index in unfinished_tasks_index_list:
                 future = self.FUTURES[index]
                 
                 # Has task completed in some fashion?
                 if future.done():
                     finished_indexes.append(index)
+
+                    # If an exception occurred, raise it
                     if not future.exception() is None:
-                        problematic_indexes.append(index)
+                        problematic_tasks_index_list.append(index)
                         self.logger.warning("Problematic project: {}".format(self.URLS[index]))
                         self.logger.debug("\t{}".format(future.exception()))
+                        # raise future.exception() # Uncomment for testing / debug purposes. Leave commented for release
 
-            unfinished_indexes = self.removedCompletedIndexes(unfinished_indexes, finished_indexes)
-            current_tasks = len(unfinished_indexes)
+            # Trim down list of uncompleted tasks
+            unfinished_tasks_index_list = self.removedCompletedIndexes(unfinished_tasks_index_list, finished_indexes)
+            current_tasks_left = len(unfinished_tasks_index_list)
             
             # Output executor task progress
-            percent_completed = 100 * (total_tasks - current_tasks) / total_tasks
+            percent_completed = 50 * (total_tasks - current_tasks_left) / total_tasks
             completed_string = "=" * int(percent_completed)
-            uncompleted_string = " " * (100 - int(percent_completed))
+            uncompleted_string = " " * (50 - int(percent_completed))
 
             self.logger.print("[{:6.2f}%] [{}{}]".format(percent_completed, completed_string, uncompleted_string))
-        self.logger.detailed("{} problematic projects detected".format(len(problematic_indexes)))
+        self.logger.detailed("{} problematic projects detected".format(len(problematic_tasks_index_list)))
         
     def end(self):
         self.logger.info("Shutting down thread executor")
@@ -108,7 +111,7 @@ class CommitParser (object):
         except Exception as e:
             # self.logger.warning("{} {}".format(type(e), e))
             raise e
-
+    
     def removedCompletedIndexes(self, unfinished, finished):
         for item in finished:
             unfinished.remove(item)

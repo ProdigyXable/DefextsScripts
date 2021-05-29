@@ -215,8 +215,6 @@ class UrlCollector (object):
 
     # Minor optimization to avoid unneccessary decrements
     def calculateNewIsoDate(self, OldIsoDate):
-        result = None
-
         if( self.SKIPPED_DAYS > 0 ):
             result = self.decrementDate(OldIsoDate[0], OldIsoDate[1], OldIsoDate[2], self.SKIPPED_DAYS)
             self.logging.detailed("Decrementing date from {} to {}".format(OldIsoDate, result))
@@ -230,7 +228,6 @@ class UrlCollector (object):
     def maxDays(self, month):
         assert month > 0 and month <= 12, "Invalid month specification" 
 
-        result = None
         if( month == 2 ):
             result = 28
         elif( month == 1 or month == 3 or month == 5 or month == 7 or month == 8 or month == 10 or month == 12 ):
