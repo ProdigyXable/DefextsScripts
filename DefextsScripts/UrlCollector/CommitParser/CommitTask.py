@@ -3,22 +3,26 @@ from HelperUtility.log import Log
 import git
 import gc
 import shutil
+import os
 
 class CommitTask(object):
     """Class details to be changed later"""
     logger = None
     NAME = None
+
     TEMP_FOLDER_NAME = None
-    REPO = None
+
+    KEYWORDS = None
 
     COUNT = 0
 
-    def __init__(self, logger: Log):
+    def __init__(self, logger: Log, keywords):
         CommitTask.COUNT = CommitTask.COUNT + 1
         self.NAME = "T{}".format(CommitTask.COUNT)
         self.TEMP_FOLDER_NAME = "temp-{}".format(self.NAME)
 
         self.logger = logger
+        self.KEYWORDS = keywords
 
     def info(self, message):
         self.logger.info("\t\t<{}> {}".format(self.NAME, message))
@@ -38,37 +42,50 @@ class CommitTask(object):
     def begin(self, project):
         self.detailed("Processing '{}'".format(project))  
         
-        self.downloadProject(project)
-        self.getCommits(project)
-        self.filterCommits(project)
+        repo = self.downloadProject(project)
+        commits = self.getCommits(project, repo)
+        self.filterCommits(project, commits)
 
-        self.end()
+        self.end(repo)
 
-    def end(self):
+    def end(self, repo):
         gc.collect()
-        self.REPO.git.clear_cache()
+        repo.git.clear_cache()
         git.rmtree(self.TEMP_FOLDER_NAME)
 
         self.detailed("Task has completed")
 
     def downloadProject(self, project):
+        
         result = None
         self.debug("Downloading '{}'".format(project))
         
-        self.REPO = git.Repo.clone_from(project, self.TEMP_FOLDER_NAME)
-        commits = list(filter(lambda c: "zap" in c.message, self.REPO.iter_commits()))
-        for commit in commits:
-            print(commit)
+        if os.path.exists(self.TEMP_FOLDER_NAME):
+            git.rmtree(self.TEMP_FOLDER_NAME)
+
+        result = git.Repo.clone_from(project, self.TEMP_FOLDER_NAME)
+
         return result
 
-    def getCommits(self, project):
-        self.debug("Retrieving commits froms '{}'".format(project))
+    def getCommits(self, project, repo):
+        self.debug("Retrieving commits from '{}'".format(project))
 
         result = None
+        result = repo.iter_commits()
         return result
 
-    def filterCommits(self, project):
+    def findKeywords(keywords, word):
+        for keyword in keywords:
+            if keyword in word:
+                return True
+        return False
+               
+
+    def filterCommits(self, project, commits):
+        result = None
         self.debug("Filtering commits from '{}'".format(project))
-
-        result = None
+        result = list(filter(lambda com: CommitTask.findKeywords( self.KEYWORDS, com.message), commits))
+        
+        for commit in result:
+            print(commit, commit.message)
         return result

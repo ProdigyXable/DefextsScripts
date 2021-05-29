@@ -103,7 +103,7 @@ class CommitParser (object):
 
     def process(self, project):
         try:
-            ct = CommitTask(self.logger)
+            ct = CommitTask(self.logger, self.CRITERIA_KEYWORDS)
             ct.begin(project)
         except Exception as e:
             # self.logger.warning("{} {}".format(type(e), e))
