@@ -50,7 +50,7 @@ class CommitParser (object):
 
     def begin(self):
         input_file = open(self.DATASET_FILEPATH, "r")
-        input_data = input_file.readlines()
+        input_data = list(filter(lambda message: len(message.strip()) > 0, input_file.readlines()))
         self.logger.info("{} projects detected".format(len(input_data)))
         
         # Send potential tasks to executor
