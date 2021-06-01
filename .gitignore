@@ -263,3 +263,4 @@ __pycache__/
 *.output
 *.access
 *.input
+/DefextsScripts/UrlCollector/DefaultOutputFolder

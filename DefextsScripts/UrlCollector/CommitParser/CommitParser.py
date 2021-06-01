@@ -9,6 +9,7 @@ class CommitParser ( object ):
     """Class to parse all of a repository's commit, looking for those satisfying certain criteria"""
 
     CRITERIA_KEYWORDS = [ "fix", "add", "change", "modify", "remove", "error", "repair", "issue", "resolve", "solve" ]
+    ACCEPTABLE_BUILD_SYSTEM_FILES = None
     MAX_FILE_DIFF_LIMIT = 3
     MAX_LINES_CHANGED_PER_FILE = 4
     AVAILABLE_FILE_TYPES = None
@@ -37,6 +38,7 @@ class CommitParser ( object ):
             self.logger.info( "Queried keyword: '{}'".format( keyword.lower() ) )
 
         self.constructFileTypes()
+        self.setAcceptableBuildSystems()
 
         # Read configuration file
         config_file = open( filepath, "r" )
@@ -72,6 +74,8 @@ class CommitParser ( object ):
         unfinished_tasks_index_list = list( range( 0, total_tasks ) )
         problematic_tasks_index_list = []
         
+        output_file = open( "{}{}successful_commits.output".format( self.OUTPUT_DIRECTORY, os.path.sep ), "w" )
+        exception_file = open( "{}{}error_projects.output".format( self.OUTPUT_DIRECTORY, os.path.sep ), "w" )
         while len( unfinished_tasks_index_list ) > 0:
             finished_indexes = []
 
@@ -84,17 +88,20 @@ class CommitParser ( object ):
                 # Has task completed in some fashion?
                 if future.done():
                     finished_indexes.append( index )
-
+                    
                     # If an exception occurred, raise it
-                    if not future.exception() is None:
+                    if future.exception() is None:
+                        project, results = future.result() 
+                        self.saveSuccessfulResults( project, results, output_file )
+                    else:
                         problematic_tasks_index_list.append( index )
                         self.logger.warning( "Problematic project: {}".format( self.URLS[ index ] ) )
                         self.logger.debug( "\t{}".format( future.exception() ) )
-                        raise future.exception() # Uncomment for testing /
+                        self.saveExceptionResults( self.URLS[ index ], future.exception(), exception_file )
+                        # raise future.exception() # Uncomment for testing /
                         # debug purposes.  Leave commented for release
 
-            # Trim
-            #  down list of uncompleted tasks
+            # Trimdown list of uncompleted tasks
             unfinished_tasks_index_list = self.removedCompletedIndexes( unfinished_tasks_index_list, finished_indexes )
             current_tasks_left = len( unfinished_tasks_index_list )
             
@@ -111,23 +118,45 @@ class CommitParser ( object ):
         self.tm.shutdown()
         self.tm = None
 
+    def saveSuccessfulResults ( self, project, future_results, file ):
+        file.write( "{}\n".format( project ) )
+
+        for commit in future_results:
+            file.write( "\t{}\n".format( commit ) )
+        file.flush()
+
+    def saveExceptionResults ( self, project, future_exception, file ):
+        
+        file.write( "Error = [{}]\n".format( project ) )
+        file.write( "{}\n".format( future_exception ) )
+        file.write( "----------------\n" )
+        file.flush()
+
     def process ( self, project ):
         try:
-            ct = CommitTask( self.logger, self.CRITERIA_KEYWORDS, self.AVAILABLE_FILE_TYPES, self.MAX_FILE_DIFF_LIMIT, self.MAX_LINES_CHANGED_PER_FILE )
-            ct.begin( project )
+            ct = CommitTask( self.logger, self.CRITERIA_KEYWORDS, self.AVAILABLE_FILE_TYPES, self.MAX_FILE_DIFF_LIMIT, self.MAX_LINES_CHANGED_PER_FILE, self.ACCEPTABLE_BUILD_SYSTEM_FILES )
+            project, commits = ct.begin( project )
+            return project, commits
         except Exception as e:
             # self.logger.warning("{} {}".format(type(e), e))
             raise e
 
+    def setAcceptableBuildSystems ( self ):
+        bs = set()
+        bs.update( [ "pom.xml" ] ) # Maven "required" files
+        bs.update( [ "build.gradle" ] ) # Groovy "required" files
+
+        self.ACCEPTABLE_BUILD_SYSTEM_FILES = bs
+
     def constructFileTypes ( self ):
         ft = set()
-        ft.update( [ "java", "kt", "kts", "ktm" ] )
-        ft.update( [ "java", "scala", "sc" ] )
-        ft.update( [ "java", "groovy", "gvy", "gy", "gsh" ] )
-        ft.update( [ "java", "clj", "cljs", "cljc", "edn" ] )
-        ft.update( [ "java", "py" ] )
-        ft.update( [ "java", "rb" ] )
-        ft.update( [ "java" ] )
+        ft.update( [ "java", "kt", "kts", "ktm" ] ) # Kotlin-based files
+        ft.update( [ "java", "scala", "sc" ] ) # Scala-based files
+        ft.update( [ "java", "groovy", "gvy", "gy", "gsh" ] ) # Groovy-based files
+        ft.update( [ "java", "clj", "cljs", "cljc", "edn" ] ) # Clojure-based files
+        ft.update( [ "java", "py" ] ) # Jython/Python-based files
+        ft.update( [ "java", "rb" ] ) # JRuby/Ruby-based files
+        ft.update( [ "java" ] ) # Java-based files
 
         self.AVAILABLE_FILE_TYPES = ft
 
