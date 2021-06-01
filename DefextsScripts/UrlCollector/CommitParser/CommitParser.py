@@ -9,7 +9,10 @@ class CommitParser ( object ):
     """Class to parse all of a repository's commit, looking for those satisfying certain criteria"""
 
     CRITERIA_KEYWORDS = [ "fix", "add", "change", "modify", "remove", "error", "repair", "issue", "resolve", "solve" ]
-    
+    MAX_FILE_DIFF_LIMIT = 3
+    MAX_LINES_CHANGED_PER_FILE = 4
+    AVAILABLE_FILE_TYPES = None
+
     MAX_WORKER_THREADS = 4
     SLEEP_TIMER = 10
 
@@ -32,6 +35,8 @@ class CommitParser ( object ):
 
         for keyword in self.CRITERIA_KEYWORDS:
             self.logger.info( "Queried keyword: '{}'".format( keyword.lower() ) )
+
+        self.constructFileTypes()
 
         # Read configuration file
         config_file = open( filepath, "r" )
@@ -85,10 +90,11 @@ class CommitParser ( object ):
                         problematic_tasks_index_list.append( index )
                         self.logger.warning( "Problematic project: {}".format( self.URLS[ index ] ) )
                         self.logger.debug( "\t{}".format( future.exception() ) )
-                        # raise future.exception() # Uncomment for testing /
+                        raise future.exception() # Uncomment for testing /
                         # debug purposes.  Leave commented for release
 
-            # Trim down list of uncompleted tasks
+            # Trim
+            #  down list of uncompleted tasks
             unfinished_tasks_index_list = self.removedCompletedIndexes( unfinished_tasks_index_list, finished_indexes )
             current_tasks_left = len( unfinished_tasks_index_list )
             
@@ -107,12 +113,24 @@ class CommitParser ( object ):
 
     def process ( self, project ):
         try:
-            ct = CommitTask( self.logger, self.CRITERIA_KEYWORDS )
+            ct = CommitTask( self.logger, self.CRITERIA_KEYWORDS, self.AVAILABLE_FILE_TYPES, self.MAX_FILE_DIFF_LIMIT, self.MAX_LINES_CHANGED_PER_FILE )
             ct.begin( project )
         except Exception as e:
             # self.logger.warning("{} {}".format(type(e), e))
             raise e
-    
+
+    def constructFileTypes ( self ):
+        ft = set()
+        ft.update( [ "java", "kt", "kts", "ktm" ] )
+        ft.update( [ "java", "scala", "sc" ] )
+        ft.update( [ "java", "groovy", "gvy", "gy", "gsh" ] )
+        ft.update( [ "java", "clj", "cljs", "cljc", "edn" ] )
+        ft.update( [ "java", "py" ] )
+        ft.update( [ "java", "rb" ] )
+        ft.update( [ "java" ] )
+
+        self.AVAILABLE_FILE_TYPES = ft
+
     def removedCompletedIndexes ( self, unfinished, finished ):
         for item in finished:
             unfinished.remove( item )

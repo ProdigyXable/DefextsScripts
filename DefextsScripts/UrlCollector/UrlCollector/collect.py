@@ -17,7 +17,7 @@ else:
     github_username = input( "Input your Github username (authenticated users may request more per minute): \t" ).strip()
     access_token = getpass.getpass( "Input password / access token: \t" ).strip()
 
-LANGUAGES_CONFIGURATION = [ 'Kotlin', 'Scala', 'Groovy', 'Closure', 'Jython', 'JRuby', 'Java' ]
+LANGUAGES_CONFIGURATION = [ 'Kotlin', 'Scala', 'Groovy', 'Clojure', 'Jython', 'JRuby', 'Java' ]
 
 for language in LANGUAGES_CONFIGURATION:
     uc = collector.UrlCollector( VerboseLevel.DEBUG, github_username, access_token )
