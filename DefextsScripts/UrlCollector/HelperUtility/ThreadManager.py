@@ -1,5 +1,6 @@
 import concurrent.futures
-from HelperUtility.log import Log
+
+from HelperUtility.Log import Log
 
 class ThreadManager ( concurrent.futures.ThreadPoolExecutor ):
     """"Class information to be changed"""

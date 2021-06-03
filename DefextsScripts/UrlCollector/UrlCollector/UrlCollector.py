@@ -2,8 +2,9 @@ import requests
 import time
 import os
 import math
-from HelperUtility.log import Log
 import datetime
+
+from HelperUtility.Log import Log
 
 class UrlCollector ( object ):
 

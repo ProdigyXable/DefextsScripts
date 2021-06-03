@@ -1,9 +1,9 @@
-from HelperUtility.log import Log
-from HelperUtility.ThreadManager import ThreadManager
-from CommitTask import CommitTask
-
 import os
 import time
+
+from HelperUtility.Log import Log
+from HelperUtility.ThreadManager import ThreadManager
+from CommitTask import CommitTask
 
 class CommitParser ( object ):
     """Class to parse all of a repository's commit, looking for those satisfying certain criteria"""
@@ -63,7 +63,15 @@ class CommitParser ( object ):
         # Send potential tasks to executor
         for project in input_data:
             project = project.strip()
-            future = self.tm.submit( self.process, project )
+
+            future = self.tm.submit( CommitParser.process, \
+               project, \
+               self.logger, \
+               self.CRITERIA_KEYWORDS, \
+               self.AVAILABLE_FILE_TYPES, \
+               self.MAX_FILE_DIFF_LIMIT, \
+               self.MAX_LINES_CHANGED_PER_FILE, \
+               self.ACCEPTABLE_BUILD_SYSTEM_FILES )
 
             self.URLS.append( project )
             self.FUTURES.append( future )
@@ -98,7 +106,7 @@ class CommitParser ( object ):
                         self.logger.warning( "Problematic project: {}".format( self.URLS[ index ] ) )
                         self.logger.debug( "\t{}".format( future.exception() ) )
                         self.saveExceptionResults( self.URLS[ index ], future.exception(), exception_file )
-                        # raise future.exception() # Uncomment for testing /
+                        raise future.exception() # Uncomment for testing /
                         # debug purposes.  Leave commented for release
 
             # Trimdown list of uncompleted tasks
@@ -106,9 +114,9 @@ class CommitParser ( object ):
             current_tasks_left = len( unfinished_tasks_index_list )
             
             # Output executor task progress
-            percent_completed = 50 * ( total_tasks - current_tasks_left ) / total_tasks
+            percent_completed = 100 * ( total_tasks - current_tasks_left ) / total_tasks
             completed_string = "=" * int( percent_completed )
-            uncompleted_string = " " * ( 50 - int( percent_completed ) )
+            uncompleted_string = " " * ( 100 - int( percent_completed ) )
 
             self.logger.print( "[{:6.2f}%] [{}{}]".format( percent_completed, completed_string, uncompleted_string ) )
         self.logger.detailed( "{} problematic projects detected".format( len( problematic_tasks_index_list ) ) )
@@ -132,9 +140,9 @@ class CommitParser ( object ):
         file.write( "----------------\n" )
         file.flush()
 
-    def process ( self, project ):
+    def process ( project, log, keywords, filetypes, diff_limit, file_line_changes, build_system_files ):
         try:
-            ct = CommitTask( self.logger, self.CRITERIA_KEYWORDS, self.AVAILABLE_FILE_TYPES, self.MAX_FILE_DIFF_LIMIT, self.MAX_LINES_CHANGED_PER_FILE, self.ACCEPTABLE_BUILD_SYSTEM_FILES )
+            ct = CommitTask( log, keywords, filetypes, diff_limit, file_line_changes, build_system_files )
             project, commits = ct.begin( project )
             return project, commits
         except Exception as e:

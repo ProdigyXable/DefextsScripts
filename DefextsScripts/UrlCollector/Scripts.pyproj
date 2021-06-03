@@ -32,12 +32,15 @@
     <Compile Include="CommitParser\CommitTask.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HelperUtility\VerboseLevel.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HelperUtility\ThreadManager.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="UrlCollector\collect.py" />
     <Compile Include="CommitParser\oldCommitParser.py" />
-    <Compile Include="HelperUtility\log.py" />
+    <Compile Include="HelperUtility\Log.py" />
     <Compile Include="CommitParser\__init__.py">
       <SubType>Code</SubType>
     </Compile>

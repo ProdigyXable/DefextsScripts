@@ -1,21 +1,17 @@
 import datetime
-import enum
 
-class VerboseLevel ( enum.IntEnum ):
-    MINIMAL = -1
-    INFO = 1
-    WARNING = 10
-    DETAILED = 100
-    DEBUG = 1000
+from HelperUtility.VerboseLevel import VerboseLevel
 
 class Log ( object ):
 
     """Logging utility class"""
-    
+   
     # LOG LEVEL
+    LOG_LEVEL = None
 
     PRETTIFY_LOG_OUTPUT_SPACE = None
-    PRETTIFY_MAP = {}
+    PRETTIFY_MAP = None
+    
     def clone ( self ):
         return self
 
@@ -25,20 +21,25 @@ class Log ( object ):
 
     def __init__ ( self, logLevel = VerboseLevel.INFO ):
         self.LOG_LEVEL = logLevel
-        self.prettifyLogOutput()
+        
+        self.setupLogOutputPrettification()
         
         assert not self.PRETTIFY_LOG_OUTPUT_SPACE is None, "Invalid value of {} for prettification ".format( self.PRETTIFY_LOG_OUTPUT_SPACE )
         assert ( type( self.PRETTIFY_LOG_OUTPUT_SPACE ) is int and self.PRETTIFY_LOG_OUTPUT_SPACE > 0 )
 
         self.info( "Initializing logging verbosity to {}".format( logLevel.name ) )
 
-    def prettifyLogOutput ( self ):
+    def setupLogOutputPrettification ( self ):
         maxCharLength = 0
 
+        self.PRETTIFY_MAP = {}
+
+        # Iterate to get max distance
         for v in VerboseLevel:
             maxCharLength = max( maxCharLength, ( len( v.name ) ) )
         self.PRETTIFY_LOG_OUTPUT_SPACE = maxCharLength
 
+        # Iterate again to fill in data structure
         for v in VerboseLevel:
             self.PRETTIFY_MAP[ v ] = self.PRETTIFY_LOG_OUTPUT_SPACE - len( v.name )
 

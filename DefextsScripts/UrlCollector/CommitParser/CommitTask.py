@@ -1,4 +1,4 @@
-from HelperUtility.log import Log
+from HelperUtility.Log import Log
 
 import git
 import gc
@@ -22,12 +22,12 @@ class CommitTask ( object ):
     COUNT = 0 # Used to determine the 'name' of the thread
     NAME = None
 
-    def __init__ ( self, logger: Log, keywords, file_types, max_diff_limit, changes_per_file, build_systems ):
+    def __init__ ( self, log: Log, keywords, file_types, max_diff_limit, changes_per_file, build_systems ):
         CommitTask.COUNT = CommitTask.COUNT + 1
         self.NAME = "T{}".format( CommitTask.COUNT )
         self.TEMP_FOLDER_NAME = "temp-{}".format( self.NAME )
 
-        self.logger = logger
+        self.logger = log
         self.KEYWORDS = keywords
         self.FILE_TYPES = file_types
         self.MAX_FILE_MODIFIED_LIMIT = max_diff_limit

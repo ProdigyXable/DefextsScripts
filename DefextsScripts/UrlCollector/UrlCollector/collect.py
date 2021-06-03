@@ -1,4 +1,4 @@
-from HelperUtility.log import VerboseLevel
+from HelperUtility.VerboseLevel import VerboseLevel
 
 import UrlCollector as collector
 import os
