@@ -133,9 +133,10 @@ class CommitParser ( object ):
             file.write( "\t{}\n".format( commit ) )
         file.flush()
 
-    def saveExceptionResults ( self, project, future_exception, file ):
+    def saveExceptionResults ( self, project, future_exception: Exception, file ):
         
         file.write( "Error = [{}]\n".format( project ) )
+        file.write( "Error Type = [{}]\n".format( future_exception.__class__) )
         file.write( "{}\n".format( future_exception ) )
         file.write( "----------------\n" )
         file.flush()

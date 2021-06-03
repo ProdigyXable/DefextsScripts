@@ -71,7 +71,7 @@ class CommitTask ( object ):
         checked_commits = set()
         satisfactory_commits = set()
 
-        self.detailed( "Processing '{}'".format( project ) )
+        self.info( "Processing '{}'".format( project ) )
         
         original_repo = self.downloadProject( project )
         branches = self.getBranches( project, original_repo )
@@ -86,8 +86,7 @@ class CommitTask ( object ):
             checked_commits.update( commits )
             satisfactory_commits.update( filtered_commits )
 
-            # self.detailed( "{} commits currently accumulated".format( len(
-            # satisfactory_commits ) ) )
+            self.debug( "{} commits currently accumulated".format( len( satisfactory_commits ) ) )
 
         self.info( "{} unique satisfactory commits found from {} branches".format( len( satisfactory_commits ), len( branches ) ) )
 
@@ -96,6 +95,7 @@ class CommitTask ( object ):
 
     def filter ( self, repo, project, commits, checked_commits ) :
         filtered_commits = None
+
         # For efficiency, only checked commits we have not already looked at
         unchecked_commits = list( filter( lambda com: CommitTask.getUncheckedCommits( com, checked_commits ), commits ) )
         unchecked_commits_length = len( unchecked_commits )
@@ -132,47 +132,42 @@ class CommitTask ( object ):
                 diff_filecount_criteria_result = len( diffs ) > self.MAX_FILE_MODIFIED_LIMIT # Determine if commit should be excluded
 
                 if diff_filecount_criteria_result:
-                    self.debug( "[{}] excluded: Too many files modified: {} > {}".format( commit, len( diffs ), self.MAX_FILE_MODIFIED_LIMIT ) )
+                    self.detailed( "[{}] excluded: Too many files modified: {} > {}".format( commit, len( diffs ), self.MAX_FILE_MODIFIED_LIMIT ) )
                     continue
                 # Filter based on number of files modified [END]
 
                 # If any modified file type does not match an approved
-                # extension,
-                # continue to next loop iteration
+                # extension, continue to next loop iteration
                 do_not_add_commit = False
                 for diff in diffs:
                     assert ( not diff.a_path is None ) or ( not diff.b_path is None ), "Both diff paths are None"
 
-                    # Filter based on modified file extension(s) [BEGIN]
-                    stop_iteration_a, file_a_extension = self.determineFileExtension( diff.a_path )
-                    stop_iteration_b, file_b_extension = self.determineFileExtension( diff.b_path )
-
-                    if stop_iteration_a or stop_iteration_b:
+                    if ( self.filterFileExtension( commit, diff ) or self.filterLinesModified( commit, diff ) ):
                         do_not_add_commit = True
-                        self.debug( "[{}] excluded: Unapproved file types: {}/{}".format( commit, file_a_extension, file_b_extension ) )
                         break
-                    # Filter based on extension [END]
 
-                    # Filter based on lines modified [BEGIN]
-                    diff_data_lines = diff.diff.decode( "utf-8" ).split( "\n" ) # Puts diff into human readable array with classic diff format
-                    lines_added = list( filter( lambda line_string: line_string.startswith( "+" ) and len( line_string.strip() ) > 1, diff_data_lines ) )
-                    lines_deleted = list( filter( lambda line_string: line_string.startswith( "-" ) and len( line_string.strip() ) > 1, diff_data_lines ) )
-                
-                
-                    if( ( len( lines_added ) + len( lines_deleted ) ) > self.MAX_LINES_CHANGED_PER_FILE ):
-                        do_not_add_commit = True
-                        self.debug( "[{}] excluded: Too many changes within one file: {} > {}".format( commit, len( lines_added ) + len( lines_deleted ), self.MAX_LINES_CHANGED_PER_FILE ) )
-                        break
-                    # Filter based on lines modified [BEGIN]
 
                 if do_not_add_commit:
                     do_not_add_commit = False
                     continue
 
-                self.debug( "[{}] accepted".format( commit ) )
+                self.detailed( "[{}] accepted".format( commit ) )
                 satisfactory_commits.append( commit )
             self.debug( "{} / {} commits accepted for diff-based criteria".format( len( satisfactory_commits ), len( commits ) ) )
             return satisfactory_commits
+
+    
+    # Filter based on modified file extension(s)
+    def filterFileExtension ( self, commit, diff ):
+        
+        stop_iteration_a, file_a_extension = self.determineFileExtension( diff.a_path )
+        stop_iteration_b, file_b_extension = self.determineFileExtension( diff.b_path )
+
+        if stop_iteration_a or stop_iteration_b:
+            self.detailed( "[{}] excluded: Unapproved file types: {}/{}".format( commit, file_a_extension, file_b_extension ) )
+            return True
+
+        return False
 
     # Given a path to a file, determines if the file's extension is allowed
     # True = not allowed, False = allowed
@@ -182,6 +177,19 @@ class CommitTask ( object ):
         else:
             file_extension = diff_path.split( "." )[ -1 ]
             return not file_extension in self.FILE_TYPES, file_extension
+
+    # Filter based on lines modified for a diff
+    def filterLinesModified ( self, commit, diff ):
+        
+        diff_data_lines = diff.diff.decode( "utf-8" ).split( "\n" ) # Puts diff into human readable array with classic diff format
+        lines_added = list( filter( lambda line_string: line_string.startswith( "+" ) and len( line_string.strip() ) > 1, diff_data_lines ) )
+        lines_deleted = list( filter( lambda line_string: line_string.startswith( "-" ) and len( line_string.strip() ) > 1, diff_data_lines ) )
+                
+        if( ( len( lines_added ) + len( lines_deleted ) ) > self.MAX_LINES_CHANGED_PER_FILE ):
+            self.detailed( "[{}] excluded: Too many changes within one file: {} > {}".format( commit, len( lines_added ) + len( lines_deleted ), self.MAX_LINES_CHANGED_PER_FILE ) )
+            return True
+        else:
+            return False
 
     def filterCommitsOnBuildSystem ( self, repo, project, commits ):
         if len( commits ) == 0:
@@ -223,7 +231,7 @@ class CommitTask ( object ):
 
     # Clones the given repository into a temp folder
     def downloadProject ( self, project ):
-        self.debug( "Downloading '{}'".format( project ) )
+        self.detailed( "Downloading '{}'".format( project ) )
 
         if os.path.exists( self.TEMP_FOLDER_NAME ):
             git.rmtree( self.TEMP_FOLDER_NAME )
