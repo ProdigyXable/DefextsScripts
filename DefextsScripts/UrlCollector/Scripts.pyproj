@@ -40,7 +40,7 @@
     </Compile>
     <Compile Include="collect.py" />
     <Compile Include="CommitParser\oldCommitParser.py" />
-    <Compile Include="HelperUtility\abc.py" />
+    <Compile Include="HelperUtility\Log.py" />
     <Compile Include="CommitParser\__init__.py">
       <SubType>Code</SubType>
     </Compile>

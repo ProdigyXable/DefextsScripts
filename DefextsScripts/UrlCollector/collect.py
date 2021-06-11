@@ -1,4 +1,4 @@
-import UrlCollector as collector
+from UrlCollector import UrlCollector as collector
 import os
 import getpass
 
@@ -34,5 +34,5 @@ if __name__ == '__main__':
     LANGUAGE_CONFIGURATION[ 'Java' ] = [ "Java" ]
 
     for language in LANGUAGE_CONFIGURATION.keys():
-        uc = collector.UrlCollector( VerboseLevel.DEBUG, github_username, access_token )
+        uc = collector( VerboseLevel.DEBUG, github_username, access_token )
         uc.begin( language, LANGUAGE_CONFIGURATION[ language ] )
