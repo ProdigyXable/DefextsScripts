@@ -25,8 +25,12 @@ if __name__ == '__main__':
     LANGUAGE_CONFIGURATION[ 'Scala' ] = [ "Scala" ]
     LANGUAGE_CONFIGURATION[ 'Groovy' ] = [ "Groovy" ]
     LANGUAGE_CONFIGURATION[ 'Clojure' ] = [ "Clojure" ]
+    
+    # JRuby is grouped as Ruby by Github
     LANGUAGE_CONFIGURATION[ 'JRuby' ] = [ "Ruby", "Java" ]
-    LANGUAGE_CONFIGURATION[ 'Jython' ] = [ "Python", "Java" ] # Github does not report Jython as a language
+    
+    # Github does not report Jython as a language
+    LANGUAGE_CONFIGURATION[ 'Jython' ] = [ "Python", "Java" ] 
     LANGUAGE_CONFIGURATION[ 'Java' ] = [ "Java" ]
 
     for language in LANGUAGE_CONFIGURATION.keys():

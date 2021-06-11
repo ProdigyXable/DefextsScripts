@@ -85,17 +85,19 @@ class UrlCollector ( object ):
         repo_dicti = repo_dicts[ i ]
         
         if( len( self.REQUIRED_PRESENT_LANGUAGES ) > 1 ):
-            language_response = requests.get( repo_dicti[ 'languages_url' ] ).json()
-            time.sleep( self.SLEEP_TIMEOUT )
+            if( repo_dicti[ 'language' ] in self.REQUIRED_PRESENT_LANGUAGES ):
+                language_response = requests.get( repo_dicti[ 'languages_url' ] ).json()
+                time.sleep( self.SLEEP_TIMEOUT )
 
-            language_intersection = set( language_response.keys() ).intersection( self.REQUIRED_PRESENT_LANGUAGES )
-            if ( len( language_intersection ) < len( self.REQUIRED_PRESENT_LANGUAGES ) ):
+                language_intersection = set( language_response.keys() ).intersection( self.REQUIRED_PRESENT_LANGUAGES )
+                if ( len( language_intersection ) < len( self.REQUIRED_PRESENT_LANGUAGES ) ):
+                    return False
+            else:
                 return False
 
         file.writelines( "{} {} {} {}\n".format( repo_dicti[ 'language' ], repo_dicti[ 'stargazers_count' ], repo_dicti[ 'clone_url' ], repo_dicti[ 'forks_count' ] ) )
         return True
        
-
     # Collects data per page
     def collect_paginated_data ( self, base_url, total_num, outputFile ):
         num = int( total_num / self.MAX_RESULTS_PER_PAGE ) + 1
@@ -147,12 +149,16 @@ class UrlCollector ( object ):
             NewIsoDate = self.calculateNewIsoDate( OldIsoDate )
 
             # Construct api url from known parameters
-            url = "https://api.github.com/search/repositories?q=language:{}+created:{}..{}&per_page={}" \
-                .format( self.LANGUAGE, \
+            url = "https://api.github.com/search/repositories?q=language:{}+created:{}..{}".format( self.LANGUAGE, \
                 self.calculateIsoDateString( NewIsoDate ), \
-                self.calculateIsoDateString( OldIsoDate ), \
-                self.MAX_RESULTS_PER_PAGE )
-        
+                self.calculateIsoDateString( OldIsoDate ) )
+
+            if len( self.REQUIRED_PRESENT_LANGUAGES ) > 1:
+                url = "{}+{}+in:description,readme".format( url, self.LANGUAGE )
+                print( url )
+
+            url = "{}&per_page={}".format( url, self.MAX_RESULTS_PER_PAGE )
+
             total_num = self.get_num( url )
 
             if ( total_num > 0 ):
