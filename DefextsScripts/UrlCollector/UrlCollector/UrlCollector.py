@@ -23,13 +23,15 @@ class UrlCollector ( object ):
     MAX_PAGE_NUMBER = int( GITHUB_MAX_INDEX / MAX_RESULTS_PER_PAGE )
 
     LANGUAGE = None
+    REQUIRED_PRESENT_LANGUAGES = None
+
     SKIPPED_DAYS = 0
     MINIMUM_SKIPPED_DAYS = 0
 
     # START POINT CONFIGURATION
     INITIAL_ISO_YEAR = 2021
-    INITIAL_ISO_MONTH = 5
-    INITIAL_ISO_DAY = 21
+    INITIAL_ISO_MONTH = 6
+    INITIAL_ISO_DAY = 4
 
     # END POINT CONFIGURATION
     STOP_YEAR = 2009
@@ -54,7 +56,7 @@ class UrlCollector ( object ):
         self.logging = Log( logLevel )
 
     # Request data from Github server
-    def request ( self, url, github_account ):
+    def request ( self, url, github_account = None ):
         result = {}
         self.logging.detailed( "Checking url {}".format( url ) )
         try:
@@ -80,9 +82,19 @@ class UrlCollector ( object ):
 
     # Writes received data to output file
     def writedata ( self, repo_dicts, i, file ):
-        
         repo_dicti = repo_dicts[ i ]
-        file.writelines( "{} {} {}\n".format( repo_dicti[ 'stargazers_count' ], repo_dicti[ 'clone_url' ], repo_dicti[ 'forks_count' ] ) )
+        
+        if( len( self.REQUIRED_PRESENT_LANGUAGES ) > 1 ):
+            language_response = requests.get( repo_dicti[ 'languages_url' ] ).json()
+            time.sleep( self.SLEEP_TIMEOUT )
+
+            language_intersection = set( language_response.keys() ).intersection( self.REQUIRED_PRESENT_LANGUAGES )
+            if ( len( language_intersection ) < len( self.REQUIRED_PRESENT_LANGUAGES ) ):
+                return False
+
+        file.writelines( "{} {} {} {}\n".format( repo_dicti[ 'language' ], repo_dicti[ 'stargazers_count' ], repo_dicti[ 'clone_url' ], repo_dicti[ 'forks_count' ] ) )
+        return True
+       
 
     # Collects data per page
     def collect_paginated_data ( self, base_url, total_num, outputFile ):
@@ -99,15 +111,19 @@ class UrlCollector ( object ):
         
             if( "items" in data ):
                 date_response_index = 0
+                data_items_written = 0
                 repo_dicts = data[ 'items' ]
                 data_response_length = len( repo_dicts )
                             
                 while( date_response_index < data_response_length ):
-                    self.writedata( repo_dicts, date_response_index, outputFile ) 
+                    dataWritten = self.writedata( repo_dicts, date_response_index, outputFile ) 
                     date_response_index += 1
 
+                    if( dataWritten is True ):
+                        data_items_written += 1    
+
                 outputFile.flush()
-                self.logging.debug( "{} entries written".format( data_response_length ) )
+                self.logging.debug( "{} entries written".format( data_items_written ) )
             else:
                 self.logging.warning( "Request failure: {}".format( data[ "message" ] ) )
                 time.sleep( self.SLEEP_TIMEOUT * 3 ) # Extra timeout, in case too many api events are being called
@@ -146,10 +162,12 @@ class UrlCollector ( object ):
             self.logging.info( "==" * self.STRING_REPEAT_CONSTANT )
 
     # Program entry point and opening processes
-    def begin ( self, language ):
+    def begin ( self, language, required_project_languages ):
         
         self.LANGUAGE = language
+        self.REQUIRED_PRESENT_LANGUAGES = required_project_languages
         assert not self.LANGUAGE is None, "Language must not be {} -> {}".format( None, self.LANGUAGE )
+        assert not self.REQUIRED_PRESENT_LANGUAGES is None, "Present languages must not be {} -> {}".format( None, self.REQUIRED_PRESENT_LANGUAGES )
 
         self.checkRateLimit()
 

@@ -19,8 +19,16 @@ if __name__ == '__main__':
         github_username = input( "Input your Github username (authenticated users may request more per minute): \t" ).strip()
         access_token = getpass.getpass( "Input password / access token: \t" ).strip()
 
-    LANGUAGES_CONFIGURATION = [ 'Kotlin', 'Scala', 'Groovy', 'Clojure', 'Jython', 'JRuby', 'Java' ]
+    LANGUAGE_CONFIGURATION = dict()
+    
+    LANGUAGE_CONFIGURATION[ 'Kotlin' ] = [ "Kotlin" ]
+    LANGUAGE_CONFIGURATION[ 'Scala' ] = [ "Scala" ]
+    LANGUAGE_CONFIGURATION[ 'Groovy' ] = [ "Groovy" ]
+    LANGUAGE_CONFIGURATION[ 'Clojure' ] = [ "Clojure" ]
+    LANGUAGE_CONFIGURATION[ 'JRuby' ] = [ "Ruby", "Java" ]
+    LANGUAGE_CONFIGURATION[ 'Jython' ] = [ "Python", "Java" ] # Github does not report Jython as a language
+    LANGUAGE_CONFIGURATION[ 'Java' ] = [ "Java" ]
 
-    for language in LANGUAGES_CONFIGURATION:
+    for language in LANGUAGE_CONFIGURATION.keys():
         uc = collector.UrlCollector( VerboseLevel.DEBUG, github_username, access_token )
-        uc.begin( language )
+        uc.begin( language, LANGUAGE_CONFIGURATION[ language ] )
