@@ -155,7 +155,6 @@ class UrlCollector ( object ):
 
             if len( self.REQUIRED_PRESENT_LANGUAGES ) > 1:
                 url = "{}+{}+in:description,readme".format( url, self.LANGUAGE )
-                print( url )
 
             url = "{}&per_page={}".format( url, self.MAX_RESULTS_PER_PAGE )
 
