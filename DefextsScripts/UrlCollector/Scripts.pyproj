@@ -5,7 +5,7 @@
     <ProjectGuid>b4ed6045-3f63-4941-922c-632f94adcc8c</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>collect.py</StartupFile>
+    <StartupFile>2_parse.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -23,13 +23,13 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="CommitParser\CommitParser.py">
+    <Compile Include="CommitParserPackage\CommitParser.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="parse.py">
+    <Compile Include="2_parse.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CommitParser\CommitTask.py">
+    <Compile Include="CommitParserPackage\CommitTask.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="HelperUtility\VerboseLevel.py">
@@ -38,23 +38,23 @@
     <Compile Include="HelperUtility\ThreadManager.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="collect.py" />
-    <Compile Include="CommitParser\oldCommitParser.py" />
+    <Compile Include="1_collect.py" />
+    <Compile Include="CommitParserPackage\oldCommitParser.py" />
     <Compile Include="HelperUtility\Log.py" />
-    <Compile Include="CommitParser\__init__.py">
+    <Compile Include="CommitParserPackage\__init__.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="UrlCollector\__init__.py">
+    <Compile Include="UrlCollectorPackage\__init__.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="UrlCollector\UrlCollector.py" />
+    <Compile Include="UrlCollectorPackage\UrlCollector.py" />
     <Compile Include="HelperUtility\__init__.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="CommitParser\" />
-    <Folder Include="UrlCollector\" />
+    <Folder Include="CommitParserPackage\" />
+    <Folder Include="UrlCollectorPackage\" />
     <Folder Include="HelperUtility\" />
   </ItemGroup>
   <ItemGroup>

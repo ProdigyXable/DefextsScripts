@@ -3,22 +3,34 @@ import time
 
 from HelperUtility.Log import Log
 from HelperUtility.ThreadManager import ThreadManager
-from CommitTask import CommitTask
+from CommitParserPackage.CommitTask import CommitTask
 
 class CommitParser ( object ):
     """Class to parse all of a repository's commit, looking for those satisfying certain criteria"""
 
-    CRITERIA_KEYWORDS = [ "fix", "add", "change", "modify", "remove", "error", "repair", "issue", "resolve", "solve" ]
+    # Commits which do not contain any of these words in the title/body are
+    # ignored
+    CRITERIA_KEYWORDS = [ "fix", "add", "change", "modify", "remove", "error", "repair", "issue", "solve" ]
+
+    # Determines what file types will be acceptable when excluding based on
+    # underlying build system
     ACCEPTABLE_BUILD_SYSTEM_FILES = None
-    MAX_FILE_DIFF_LIMIT = 3
+    
+    MAX_FILE_DIFF_LIMIT = 3 # Max number of files added/deleted/modified
+    
+    # Max limit on the number of added/deleted/changed files via diff (can
+    # include language comments)
     MAX_LINES_CHANGED_PER_FILE = 4
+    
+    # Acceptable considered file types
     AVAILABLE_FILE_TYPES = None
 
+    # Max threads employable
     MAX_WORKER_THREADS = 4
     SLEEP_TIMER = 10
 
-    URLS = []
-    FUTURES = []
+    URLS = [] # Contains list of urls (1) started to be processed or (2) finished processing
+    FUTURES = [] # Contains results from asynchronous threads
 
     OUTPUT_DIRECTORY = None
     DATASET_FILEPATH = None
@@ -106,8 +118,9 @@ class CommitParser ( object ):
                         self.logger.warning( "Problematic project: {}".format( self.URLS[ index ] ) )
                         self.logger.debug( "\t{}".format( future.exception() ) )
                         self.saveExceptionResults( self.URLS[ index ], future.exception(), exception_file )
-                        raise future.exception() # Uncomment for testing /
-                        # debug purposes.  Leave commented for release
+                        
+                        # Uncomment for debug purposes.  Comment for release
+                        # raise future.exception()
 
             # Trimdown list of uncompleted tasks
             unfinished_tasks_index_list = self.removedCompletedIndexes( unfinished_tasks_index_list, finished_indexes )
@@ -126,17 +139,21 @@ class CommitParser ( object ):
         self.tm.shutdown()
         self.tm = None
 
+    # Save successful results to output file in output directory
     def saveSuccessfulResults ( self, project, future_results, file ):
+        self.logger.print( "Writing {} acceptable results from {} to {}".format( len( future_results ), project, file.name ) )
         file.write( "{}\n".format( project ) )
 
         for commit in future_results:
             file.write( "\t{}\n".format( commit ) )
         file.flush()
 
+    # Save error-based results to error file in output directory
     def saveExceptionResults ( self, project, future_exception: Exception, file ):
+        self.logger.print( "Writing erroneous results from {} to {}".format( project, file.name ) )
         
         file.write( "Error = [{}]\n".format( project ) )
-        file.write( "Error Type = [{}]\n".format( future_exception.__class__) )
+        file.write( "Error Type = [{}]\n".format( future_exception.__class__ ) )
         file.write( "{}\n".format( future_exception ) )
         file.write( "----------------\n" )
         file.flush()
@@ -154,20 +171,22 @@ class CommitParser ( object ):
         bs = set()
         bs.update( [ "pom.xml" ] ) # Maven "required" files
         bs.update( [ "build.gradle" ] ) # Groovy "required" files
+        bs.update( [ "build.xml" ] ) # Ant "required" files
 
         self.ACCEPTABLE_BUILD_SYSTEM_FILES = bs
 
+    # Used to determine what files are acceptable for each potential project
     def constructFileTypes ( self ):
-        ft = set()
-        ft.update( [ "java", "kt", "kts", "ktm" ] ) # Kotlin-based files
-        ft.update( [ "java", "scala", "sc" ] ) # Scala-based files
-        ft.update( [ "java", "groovy", "gvy", "gy", "gsh" ] ) # Groovy-based files
-        ft.update( [ "java", "clj", "cljs", "cljc", "edn" ] ) # Clojure-based files
-        ft.update( [ "java", "py" ] ) # Jython/Python-based files
-        ft.update( [ "java", "rb" ] ) # JRuby/Ruby-based files
-        ft.update( [ "java" ] ) # Java-based files
+        acceptedFileTypes = set()
+        acceptedFileTypes.update( [ "java", "kt", "kts", "ktm" ] ) # Kotlin-based files
+        acceptedFileTypes.update( [ "java", "scala", "sc" ] ) # Scala-based files
+        acceptedFileTypes.update( [ "java", "groovy", "gvy", "gy", "gsh" ] ) # Groovy-based files
+        acceptedFileTypes.update( [ "java", "clj", "cljs", "cljc", "edn" ] ) # Clojure-based files
+        acceptedFileTypes.update( [ "java", "py" ] ) # Jython/Python-based files
+        acceptedFileTypes.update( [ "java", "rb" ] ) # JRuby/Ruby-based files
+        acceptedFileTypes.update( [ "java" ] ) # Java-based files
 
-        self.AVAILABLE_FILE_TYPES = ft
+        self.AVAILABLE_FILE_TYPES = acceptedFileTypes
 
     def removedCompletedIndexes ( self, unfinished, finished ):
         for item in finished:

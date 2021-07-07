@@ -1,4 +1,4 @@
-import UrlCollector.UrlCollector as collector
+import UrlCollectorPackage.UrlCollector as collector
 import os
 import getpass
 
