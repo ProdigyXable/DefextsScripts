@@ -85,7 +85,7 @@ class CommitParser ( object ):
             return None
         else:
             cleaned_data = list( map( lambda line: line.split( self.CONFIGURATION_DELIMITER )[ git_link_column_index ].strip(), line_data ) )
-            cleaned_data = list( map( lambda line: line.replace( "https://github.com","ssh://git@github.com" ), cleaned_data ) ) # Used to use SSH protocol instead of HTTPS
+            cleaned_data = list( map( lambda line: line.replace( "https://github.com","https://null:null@github.com" ), cleaned_data ) ) # Used to bypass/ignore repos required credentials
             return cleaned_data
 
     def begin ( self ):
@@ -153,7 +153,6 @@ class CommitParser ( object ):
             uncompleted_string = " " * ( 100 - int( percent_completed ) )
 
             self.logger.print( "[{:6.2f}%] [{}{}] [{}/{}]".format( percent_completed, completed_string, uncompleted_string , ( total_tasks - current_tasks_left ), total_tasks ) )
-            print( unfinished_tasks_index_list )
         self.logger.detailed( "{} problematic projects detected".format( len( problematic_tasks_index_list ) ) )
         
     def end ( self ):
