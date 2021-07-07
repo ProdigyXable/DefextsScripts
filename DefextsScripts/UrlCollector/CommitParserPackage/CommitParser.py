@@ -84,7 +84,8 @@ class CommitParser ( object ):
         if git_link_column_index == -1:
             return None
         else:
-            cleaned_data = ( list( map( lambda line: line.split( self.CONFIGURATION_DELIMITER )[ git_link_column_index ].strip(), line_data ) ) )
+            cleaned_data = list( map( lambda line: line.split( self.CONFIGURATION_DELIMITER )[ git_link_column_index ].strip(), line_data ) )
+            cleaned_data = list( map( lambda line: line.replace( "https://github.com","ssh://git@github.com" ), cleaned_data ) ) # Used to use SSH protocol instead of HTTPS
             return cleaned_data
 
     def begin ( self ):

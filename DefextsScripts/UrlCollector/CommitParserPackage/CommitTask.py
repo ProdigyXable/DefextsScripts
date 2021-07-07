@@ -80,7 +80,7 @@ class CommitTask ( object ):
             self.CURRENT_BRANCH = self.checkoutBranch( original_repo, project, branch )
             commits = self.getCommits( project, original_repo )
 
-            # Emply various filters
+            # Employ various filters
             filtered_commits = self.filter( original_repo, project, commits, checked_commits )
 
             checked_commits.update( commits )
@@ -106,11 +106,11 @@ class CommitTask ( object ):
             self.detailed( "Skipping over {} commits".format( skipped_commits_length ) )
         
         if ( unchecked_commits_length > 0 ):
-            filter1_commits = self.filterCommitsOnKeywords( project, unchecked_commits )
-            filter2_commits = self.filterCommitsOnDiffFiles( repo, project , filter1_commits )
-            filter3_commits = self.filterCommitsOnBuildSystem( repo, project, filter2_commits )
+            filter1_commits = self.filterCommitsOnKeywords( project, unchecked_commits ) # Stage 1 filtering
+            filter2_commits = self.filterCommitsOnDiffFiles( repo, project , filter1_commits ) # Stage 2 filtering
+            filter3_commits = self.filterCommitsOnBuildSystem( repo, project, filter2_commits ) # Stage 3 filtering
 
-            filtered_commits = filter3_commits
+            filtered_commits = filter3_commits 
         else:
             filtered_commits = [] # Empty list
 
