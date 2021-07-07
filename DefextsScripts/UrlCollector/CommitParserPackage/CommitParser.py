@@ -8,6 +8,8 @@ from CommitParserPackage.CommitTask import CommitTask
 class CommitParser ( object ):
     """Class to parse all of a repository's commit, looking for those satisfying certain criteria"""
 
+    CONFIGURATION_DELIMITER = " "
+
     # Commits which do not contain any of these words in the title/body are
     # ignored
     CRITERIA_KEYWORDS = [ "fix", "add", "change", "modify", "remove", "error", "repair", "issue", "solve" ]
@@ -68,21 +70,21 @@ class CommitParser ( object ):
 
     def clean_configuration ( self, line_data ):
         assert len( line_data ) > 0, "Empty configuration file detected"
-        
-        first_line_data = line_data[ 0 ].split( " " )
+
+        first_line_data = line_data[ 0 ].split( self.CONFIGURATION_DELIMITER )
         max_length = len( first_line_data )
 
         git_link_column_index = -1
 
         for column_index in range( 0, max_length ):
-            if( first_line_data[ column_index ].endswith( ".git" ) ):
+            if( first_line_data[ column_index ].strip().endswith( ".git" ) ):
                 git_link_column_index = column_index
                 break
 
         if git_link_column_index == -1:
             return None
         else:
-            cleaned_data = ( list( map( lambda line: line.split( " " )[ git_link_column_index ], line_data ) ) )
+            cleaned_data = ( list( map( lambda line: line.split( self.CONFIGURATION_DELIMITER )[ git_link_column_index ].strip(), line_data ) ) )
             return cleaned_data
 
     def begin ( self ):
@@ -149,7 +151,8 @@ class CommitParser ( object ):
             completed_string = "=" * int( percent_completed )
             uncompleted_string = " " * ( 100 - int( percent_completed ) )
 
-            self.logger.print( "[{:6.2f}%] [{}{}]".format( percent_completed, completed_string, uncompleted_string ) )
+            self.logger.print( "[{:6.2f}%] [{}{}] [{}/{}]".format( percent_completed, completed_string, uncompleted_string , ( total_tasks - current_tasks_left ), total_tasks ) )
+            print( unfinished_tasks_index_list )
         self.logger.detailed( "{} problematic projects detected".format( len( problematic_tasks_index_list ) ) )
         
     def end ( self ):

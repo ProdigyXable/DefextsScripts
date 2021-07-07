@@ -182,8 +182,9 @@ class CommitTask ( object ):
     def filterLinesModified ( self, commit, diff ):
         
         diff_data_lines = diff.diff.decode( "utf-8" ).split( "\n" ) # Puts diff into human readable array with classic diff format
-        lines_added = list( filter( lambda line_string: line_string.startswith( "+" ) and len( line_string.strip() ) > 1, diff_data_lines ) )
-        lines_deleted = list( filter( lambda line_string: line_string.startswith( "-" ) and len( line_string.strip() ) > 1, diff_data_lines ) )
+
+        lines_added = list( filter( lambda line_string: line_string.startswith( "+" ) and len( line_string.strip() ) > 1, diff_data_lines ) ) # Get list of added lines
+        lines_deleted = list( filter( lambda line_string: line_string.startswith( "-" ) and len( line_string.strip() ) > 1, diff_data_lines ) ) # Get list of deleted lines
                 
         if( ( len( lines_added ) + len( lines_deleted ) ) > self.MAX_LINES_CHANGED_PER_FILE ):
             self.detailed( "[{}] excluded: Too many changes within one file: {} > {}".format( commit, len( lines_added ) + len( lines_deleted ), self.MAX_LINES_CHANGED_PER_FILE ) )
@@ -200,7 +201,7 @@ class CommitTask ( object ):
                 self.detailed( "Checking [{}]'s build system".format( commit ) )
                 if self.checkBuildSystem( repo, commit ):
                     satisfactory_commits.append( commit )
-                repo.git.reset( "--hard" )
+                repo.git.reset( "--hard" ) # Reset to ensure local branch reflects remote branch
 
             self.debug( "{} / {} commits accepted on build system criteria".format( len( satisfactory_commits ), len( commits ) ) )
             return satisfactory_commits
@@ -249,7 +250,7 @@ class CommitTask ( object ):
     # Checkout the given branch
     def checkoutBranch ( self, repo, project, branch ):
         if( not self.CURRENT_BRANCH is None ):
-            repo.git.clean( "-xdf" )
+            repo.git.clean( "-xdf" ) # Clean to ensure files from previously checkout branches are removed
             repo.git.checkout( self.CURRENT_BRANCH )
         old_branch = repo.active_branch
         repo.git.checkout( branch, b=branch.name )

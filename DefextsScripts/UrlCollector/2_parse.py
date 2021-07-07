@@ -7,7 +7,7 @@ from HelperUtility.VerboseLevel import VerboseLevel
 if __name__ == '__main__':
     configuration_details = "details.configuration"
     if os.path.exists( configuration_details ):
-        cp = CommitParser( VerboseLevel.DEBUG, configuration_details )
+        cp = CommitParser( VerboseLevel.DETAILED, configuration_details )
         cp.begin()
         cp.wait()
         cp.end()
