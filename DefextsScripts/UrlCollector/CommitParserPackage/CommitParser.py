@@ -162,12 +162,13 @@ class CommitParser ( object ):
 
     # Save successful results to output file in output directory
     def saveSuccessfulResults ( self, project, future_results, file ):
-        self.logger.print( "Writing {} acceptable results from {} to {}".format( len( future_results ), project, file.name ) )
-        file.write( "{}\n".format( project ) )
+        if( len( future_results ) > 0 ):
+            self.logger.print( "Writing {} acceptable results from {} to {}".format( len( future_results ), project, file.name ) )
+            file.write( "{}\n".format( project ) )
 
-        for commit in future_results:
-            file.write( "\t{}\n".format( commit ) )
-        file.flush()
+            for commit in future_results:
+                file.write( "\t{}\n".format( commit ) )
+            file.flush()
 
     # Save error-based results to error file in output directory
     def saveExceptionResults ( self, project, future_exception: Exception, file ):
