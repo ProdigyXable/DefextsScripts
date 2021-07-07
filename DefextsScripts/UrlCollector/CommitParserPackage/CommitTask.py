@@ -70,29 +70,32 @@ class CommitTask ( object ):
 
     # Entry point for each CommitTask as it enters its own thread
     def begin ( self, project ):
-        checked_commits = set()
-        satisfactory_commits = set()
+        try:
+            checked_commits = set()
+            satisfactory_commits = set()
 
-        self.info( "Processing '{}'".format( project ) )
+            self.info( "Processing '{}'".format( project ) )
         
-        original_repo = self.downloadProject( project )
-        branches = self.getBranches( project, original_repo )
+            original_repo = self.downloadProject( project )
+            branches = self.getBranches( project, original_repo )
 
-        for branch in branches:
-            self.CURRENT_BRANCH = self.checkoutBranch( original_repo, project, branch )
-            commits = self.getCommits( project, original_repo )
+            for branch in branches:
+                self.CURRENT_BRANCH = self.checkoutBranch( original_repo, project, branch )
+                commits = self.getCommits( project, original_repo )
 
-            # Employ various filters
-            filtered_commits = self.filter( original_repo, project, commits, checked_commits )
+                # Employ various filters
+                filtered_commits = self.filter( original_repo, project, commits, checked_commits )
 
-            checked_commits.update( commits )
-            satisfactory_commits.update( filtered_commits )
+                checked_commits.update( commits )
+                satisfactory_commits.update( filtered_commits )
 
-            self.debug( "{} commits currently accumulated".format( len( satisfactory_commits ) ) )
+                self.debug( "{} commits currently accumulated".format( len( satisfactory_commits ) ) )
 
-        self.info( "{} unique satisfactory commits found from {} branches".format( len( satisfactory_commits ), len( branches ) ) )
+            self.info( "{} unique satisfactory commits found from {} branches".format( len( satisfactory_commits ), len( branches ) ) )
 
-        self.end( original_repo )
+        finally:
+            self.end( original_repo )
+
         return ( project, satisfactory_commits )
 
     def filter ( self, repo, project, commits, checked_commits ) :
