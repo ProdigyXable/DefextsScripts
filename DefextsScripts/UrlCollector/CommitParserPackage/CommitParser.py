@@ -85,7 +85,10 @@ class CommitParser ( object ):
             return None
         else:
             cleaned_data = list( map( lambda line: line.split( self.CONFIGURATION_DELIMITER )[ git_link_column_index ].strip(), line_data ) )
-            cleaned_data = list( map( lambda line: line.replace( "https://github.com","https://null:null@github.com" ), cleaned_data ) ) # Used to bypass/ignore repos required credentials
+            # cleaned_data = list( map( lambda line: line.replace(
+            # "https://github.com","https://{}github.com".format(
+            # self.BYPASS_CREDENTIALS ) ), cleaned_data ) ) # Used to
+            # bypass/ignore repos required credentials
             return cleaned_data
 
     def begin ( self ):

@@ -22,6 +22,8 @@ class CommitTask ( object ):
     COUNT = 0 # Used to determine the 'name' of the thread
     NAME = None
 
+    BYPASS_CREDENTIALS = "null:null@"
+
     def __init__ ( self, log: Log, keywords, file_types, max_diff_limit, changes_per_file, build_systems ):
         CommitTask.COUNT = CommitTask.COUNT + 1
         self.NAME = "T{}".format( CommitTask.COUNT )
@@ -237,7 +239,8 @@ class CommitTask ( object ):
         if os.path.exists( self.TEMP_FOLDER_NAME ):
             git.rmtree( self.TEMP_FOLDER_NAME )
 
-        result = git.Repo.clone_from( project, self.TEMP_FOLDER_NAME )
+        bypass_project = project.replace( "https://github.com","https://{}github.com".format( self.BYPASS_CREDENTIALS ) )
+        result = git.Repo.clone_from( bypass_project, self.TEMP_FOLDER_NAME )
         return result
 
     # Get list of (remote) branches for the given repository
