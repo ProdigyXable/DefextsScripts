@@ -55,7 +55,6 @@ class CommitParser ( object ):
         # Read configuration file
         config_file = open( filepath, "r" )
         configuration_data = config_file.readlines()
-        assert len( configuration_data ) >= 2, "Invalid content of {}".format( filepath )
         
         # Setup output directory
         self.OUTPUT_DIRECTORY = configuration_data[ 0 ].strip()
@@ -67,9 +66,28 @@ class CommitParser ( object ):
         assert os.path.exists( self.DATASET_FILEPATH ), "Invalid input filepath specified: '{}'".format( self.DATASET_FILEPATH )
         self.logger.detailed( "Input filepath = {}".format( self.DATASET_FILEPATH ) )
 
+    def clean_configuration ( self, line_data ):
+        assert len( line_data ) > 0, "Empty configuration file detected"
+        
+        first_line_data = line_data[ 0 ].split( " " )
+        max_length = len( first_line_data )
+
+        git_link_column_index = -1
+
+        for column_index in range( 0, max_length ):
+            if( first_line_data[ column_index ].endswith( ".git" ) ):
+                git_link_column_index = column_index
+                break
+
+        if git_link_column_index == -1:
+            return None
+        else:
+            cleaned_data = ( list( map( lambda line: line.split( " " )[ git_link_column_index ], line_data ) ) )
+            return cleaned_data
+
     def begin ( self ):
         input_file = open( self.DATASET_FILEPATH, "r" )
-        input_data = list( filter( lambda message: len( message.strip() ) > 0, input_file.readlines() ) )
+        input_data = self.clean_configuration( list( filter( lambda message: len( message.strip() ) > 0, input_file.readlines() ) ) )
         self.logger.info( "{} projects detected".format( len( input_data ) ) )
         
         # Send potential tasks to executor
