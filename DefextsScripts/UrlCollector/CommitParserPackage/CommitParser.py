@@ -134,10 +134,6 @@ class CommitParser ( object ):
                         project, results, exceptions = future.result() 
                         self.saveSuccessfulResults( project, results, output_file )
                         
-                        print( project )
-                        print( results )
-                        print( exceptions )
-
                         if( len( exceptions ) > 0 ):
                             self.saveExceptionCommit( project, exceptions, exception_file )
                     else:
