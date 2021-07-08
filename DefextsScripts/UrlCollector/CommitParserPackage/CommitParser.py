@@ -85,10 +85,6 @@ class CommitParser ( object ):
             return None
         else:
             cleaned_data = list( map( lambda line: line.split( self.CONFIGURATION_DELIMITER )[ git_link_column_index ].strip(), line_data ) )
-            # cleaned_data = list( map( lambda line: line.replace(
-            # "https://github.com","https://{}github.com".format(
-            # self.BYPASS_CREDENTIALS ) ), cleaned_data ) ) # Used to
-            # bypass/ignore repos required credentials
             return cleaned_data
 
     def begin ( self ):
@@ -135,13 +131,20 @@ class CommitParser ( object ):
                     
                     # If an exception occurred, raise it
                     if future.exception() is None:
-                        project, results = future.result() 
+                        project, results, exceptions = future.result() 
                         self.saveSuccessfulResults( project, results, output_file )
+                        
+                        print( project )
+                        print( results )
+                        print( exceptions )
+
+                        if( len( exceptions ) > 0 ):
+                            self.saveExceptionCommit( project, exceptions, exception_file )
                     else:
                         problematic_tasks_index_list.append( index )
                         self.logger.warning( "Problematic project: {}".format( self.URLS[ index ] ) )
                         self.logger.debug( "\t{}".format( future.exception() ) )
-                        self.saveExceptionResults( self.URLS[ index ], future.exception(), exception_file )
+                        self.saveExceptionProject( self.URLS[ index ], future.exception(), exception_file )
                         
                         # Uncomment for debug purposes.  Comment for release
                         # raise future.exception()
@@ -174,10 +177,22 @@ class CommitParser ( object ):
             file.flush()
 
     # Save error-based results to error file in output directory
-    def saveExceptionResults ( self, project, future_exception: Exception, file ):
+
+    def saveExceptionProject ( self, project, exceptions, file ):
+        self.logger.warning( "Problematic commits = {}".format( len( exceptions ) ) )
+
+        for e in exceptions:
+
+            file.write( "Commit Error = [{}]\n".format( project ) )
+            file.write( "Error Type = [{}]\n".format( e.__class__ ) )
+            file.write( "{}\n".format( e ) )
+            file.write( "----------------\n" )
+            file.flush()
+
+    def saveExceptionProject ( self, project, future_exception: Exception, file ):
         self.logger.print( "Writing erroneous results from {} to {}".format( project, file.name ) )
         
-        file.write( "Error = [{}]\n".format( project ) )
+        file.write( "Project Error = [{}]\n".format( project ) )
         file.write( "Error Type = [{}]\n".format( future_exception.__class__ ) )
         file.write( "{}\n".format( future_exception ) )
         file.write( "----------------\n" )
@@ -186,8 +201,8 @@ class CommitParser ( object ):
     def process ( project, log, keywords, filetypes, diff_limit, file_line_changes, build_system_files ):
         try:
             ct = CommitTask( log, keywords, filetypes, diff_limit, file_line_changes, build_system_files )
-            project, commits = ct.begin( project )
-            return project, commits
+            project, commits, exceptions = ct.begin( project )
+            return project, commits, exceptions
         except Exception as e:
             # self.logger.warning("{} {}".format(type(e), e))
             raise e

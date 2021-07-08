@@ -70,33 +70,38 @@ class CommitTask ( object ):
 
     # Entry point for each CommitTask as it enters its own thread
     def begin ( self, project ):
-        try:
-            checked_commits = set()
-            satisfactory_commits = set()
+        checked_commits = set()
+        satisfactory_commits = set()
+        exceptions = []
 
+        try:
             self.info( "Processing '{}'".format( project ) )
         
             original_repo = self.downloadProject( project )
             branches = self.getBranches( project, original_repo )
 
             for branch in branches:
-                self.CURRENT_BRANCH = self.checkoutBranch( original_repo, project, branch )
-                commits = self.getCommits( project, original_repo )
+                try:
+                    self.CURRENT_BRANCH = self.checkoutBranch( original_repo, project, branch )
+                    commits = self.getCommits( project, original_repo )
 
-                # Employ various filters
-                filtered_commits = self.filter( original_repo, project, commits, checked_commits )
+                    # Employ various filters
+                    filtered_commits = self.filter( original_repo, project, commits, checked_commits )
 
-                checked_commits.update( commits )
-                satisfactory_commits.update( filtered_commits )
-
-                self.debug( "{} commits currently accumulated".format( len( satisfactory_commits ) ) )
+                    checked_commits.update( commits )
+                    satisfactory_commits.update( filtered_commits )
+                except Exception as e:
+                    exceptions.append( e )
+                finally:
+                    self.debug( "{} commits currently accumulated".format( len( satisfactory_commits ) ) )
 
             self.info( "{} unique satisfactory commits found from {} branches".format( len( satisfactory_commits ), len( branches ) ) )
-
-        finally:
             self.end( original_repo )
 
-        return ( project, satisfactory_commits )
+        except Exception as e:
+            raise e
+        
+        return ( project, satisfactory_commits, exceptions )
 
     def filter ( self, repo, project, commits, checked_commits ) :
         filtered_commits = None
@@ -130,34 +135,38 @@ class CommitTask ( object ):
             satisfactory_commits = []
         
             for commit in commits:
-                previous_commit = repo.commit( "{}~1".format( commit ) ) # Get previous commit
-                diffs = previous_commit.diff( commit, create_patch=True ) # Acquire diff
+                try:
+                    previous_commit = repo.commit( "{}~1".format( commit ) ) # Get previous commit
+                    diffs = previous_commit.diff( commit, create_patch=True ) # Generate git diff with patch
             
-                # Filter based on number of files modified [BEGIN]
-                diff_filecount_criteria_result = len( diffs ) > self.MAX_FILE_MODIFIED_LIMIT # Determine if commit should be excluded
+                    # Filter based on number of files modified [BEGIN]
+                    diff_filecount_criteria_result = len( diffs ) > self.MAX_FILE_MODIFIED_LIMIT # Determine if commit should be excluded
 
-                if diff_filecount_criteria_result:
-                    self.detailed( "[{}] excluded: Too many files modified: {} > {}".format( commit, len( diffs ), self.MAX_FILE_MODIFIED_LIMIT ) )
-                    continue
-                # Filter based on number of files modified [END]
+                    if diff_filecount_criteria_result:
+                        self.debug( "[{}] excluded: Too many files modified: {} > {}".format( commit, len( diffs ), self.MAX_FILE_MODIFIED_LIMIT ) )
+                        continue
+                    # Filter based on number of files modified [END]
 
-                # If any modified file type does not match an approved
-                # extension, continue to next loop iteration
-                do_not_add_commit = False
-                for diff in diffs:
-                    assert ( not diff.a_path is None ) or ( not diff.b_path is None ), "Both diff paths are None"
-
-                    if ( self.filterFileExtension( commit, diff ) or self.filterLinesModified( commit, diff ) ):
-                        do_not_add_commit = True
-                        break
-
-
-                if do_not_add_commit:
+                    # If any modified file type does not match an approved
+                    # extension, continue to next loop iteration
                     do_not_add_commit = False
-                    continue
+                    for diff in diffs:
+                        assert ( not diff.a_path is None ) or ( not diff.b_path is None ), "Both diff paths are None"
 
-                self.detailed( "[{}] accepted".format( commit ) )
-                satisfactory_commits.append( commit )
+                        if ( self.filterFileExtension( commit, diff ) or self.filterLinesModified( commit, diff ) ):
+                            do_not_add_commit = True
+                            break
+
+                    if do_not_add_commit:
+                        do_not_add_commit = False
+                        continue
+
+                    self.detailed( "[{}] accepted".format( commit ) )
+                    satisfactory_commits.append( commit )
+
+                except Exception as e:
+                    pass
+
             self.debug( "{} / {} commits accepted for diff-based criteria".format( len( satisfactory_commits ), len( commits ) ) )
             return satisfactory_commits
 
@@ -169,7 +178,7 @@ class CommitTask ( object ):
         stop_iteration_b, file_b_extension = self.determineFileExtension( diff.b_path )
 
         if stop_iteration_a or stop_iteration_b:
-            self.detailed( "[{}] excluded: Unapproved file types: {}/{}".format( commit, file_a_extension, file_b_extension ) )
+            self.debug( "[{}] excluded: Unapproved file types: {}/{}".format( commit, file_a_extension, file_b_extension ) )
             return True
 
         return False
@@ -192,7 +201,7 @@ class CommitTask ( object ):
         lines_deleted = list( filter( lambda line_string: line_string.startswith( "-" ) and len( line_string.strip() ) > 1, diff_data_lines ) ) # Get list of deleted lines
                 
         if( ( len( lines_added ) + len( lines_deleted ) ) > self.MAX_LINES_CHANGED_PER_FILE ):
-            self.detailed( "[{}] excluded: Too many changes within one file: {} > {}".format( commit, len( lines_added ) + len( lines_deleted ), self.MAX_LINES_CHANGED_PER_FILE ) )
+            self.debug( "[{}] excluded: Too many changes within one file: {} > {}".format( commit, len( lines_added ) + len( lines_deleted ), self.MAX_LINES_CHANGED_PER_FILE ) )
             return True
         else:
             return False
@@ -202,11 +211,17 @@ class CommitTask ( object ):
             return commits
         else:
             satisfactory_commits = []
+            self.info( "Processing the build system of {} commits".format( len( commits ) ) )
+
             for commit in commits:
-                self.detailed( "Checking [{}]'s build system".format( commit ) )
-                if self.checkBuildSystem( repo, commit ):
-                    satisfactory_commits.append( commit )
-                repo.git.reset( "--hard" ) # Reset to ensure local branch reflects remote branch
+                try:
+                    self.detailed( "Checking [{}]'s build system".format( commit ) )
+                    if self.checkBuildSystem( repo, commit ):
+                        satisfactory_commits.append( commit )
+                except Exception as e:
+                    pass
+                finally:
+                    repo.git.reset( "--hard" ) # Reset to ensure local branch reflects remote branch
 
             self.debug( "{} / {} commits accepted on build system criteria".format( len( satisfactory_commits ), len( commits ) ) )
             return satisfactory_commits

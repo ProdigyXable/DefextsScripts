@@ -264,3 +264,4 @@ __pycache__/
 *.access
 *.input
 /DefextsScripts/UrlCollector/DefaultOutputFolder
+/DefextsScripts/UrlCollector/temp-T*
