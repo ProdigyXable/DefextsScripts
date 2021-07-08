@@ -166,9 +166,10 @@ class CommitTask ( object ):
 
                     if do_not_add_commit:
                         do_not_add_commit = False
+                        self.debug( "[{}] rejected - diff filter".format( commit ) )
                         continue
 
-                    self.detailed( "[{}] accepted".format( commit ) )
+                    self.detailed( "[{}] accepted - diff filter".format( commit ) )
                     satisfactory_commits.append( commit )
 
                 except Exception as e:
@@ -224,13 +225,15 @@ class CommitTask ( object ):
 
             for commit in commits:
                 try:
-                    self.detailed( "Checking [{}]'s build system".format( commit ) )
                     if self.checkBuildSystem( repo, commit ):
+                        self.detailed( "[{}] accepted - build system filter".format( commit ) )
                         satisfactory_commits.append( commit )
+                    else:
+                        self.debug( "[{}] rejected - build system filter".format( commit ) )
                 except Exception as e:
                     exception_commits.append( ( commit, e ) )
                 finally:
-                    repo.git.reset( "--hard" ) # Reset to ensure local branch reflects remote branch
+                    self.resetCommit( repo )
 
             self.debug( "{} / {} commits accepted on build system criteria".format( len( satisfactory_commits ), len( commits ) ) )
             return satisfactory_commits, exception_commits
@@ -242,6 +245,10 @@ class CommitTask ( object ):
             if len( found_build_system_files ) > 0:
                 return True
         return False
+
+    def resetCommit ( self, repo ):
+        repo.git.clean( "-xdf" ) # Clean to ensure files from previously checkout branches are removed
+        repo.git.reset( "--hard" ) # Reset to ensure local branch reflects remote branch
 
     def filterCommitsOnKeywords ( self, project, commits ):
         if len( commits ) == 0:
@@ -280,7 +287,7 @@ class CommitTask ( object ):
     # Checkout the given branch
     def checkoutBranch ( self, repo, project, branch ):
         if( not self.CURRENT_BRANCH is None ):
-            repo.git.clean( "-xdf" ) # Clean to ensure files from previously checkout branches are removed
+            self.resetCommit( repo )
             repo.git.checkout( self.CURRENT_BRANCH )
         old_branch = repo.active_branch
         repo.git.checkout( branch, b=branch.name )

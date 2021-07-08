@@ -175,7 +175,7 @@ class CommitParser ( object ):
     # Save error-based results to error file in output directory
 
     def saveExceptionCommit ( self, project, exceptions, file ):
-        self.logger.warning( "Problematic commits = {} from {}".format( len( exceptions ) ), project )
+        self.logger.warning( "Problematic commits = {} from {}".format( len( exceptions ) , project ) )
 
         for commit, e in exceptions:
 
