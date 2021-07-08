@@ -86,12 +86,14 @@ class CommitTask ( object ):
                     commits = self.getCommits( project, original_repo )
 
                     # Employ various filters
-                    filtered_commits = self.filter( original_repo, project, commits, checked_commits )
+                    filtered_commits, exception_commits = self.filter( original_repo, project, commits, checked_commits )
 
                     checked_commits.update( commits )
                     satisfactory_commits.update( filtered_commits )
+                    exceptions.extend( exception_commits )
+
                 except Exception as e:
-                    exceptions.append( e )
+                    self.logger.warning( e )
                 finally:
                     self.debug( "{} commits currently accumulated".format( len( satisfactory_commits ) ) )
 
@@ -105,7 +107,7 @@ class CommitTask ( object ):
 
     def filter ( self, repo, project, commits, checked_commits ) :
         filtered_commits = None
-
+        exception_commits = []
         # For efficiency, only checked commits we have not already looked at
         unchecked_commits = list( filter( lambda com: CommitTask.getUncheckedCommits( com, checked_commits ), commits ) )
         unchecked_commits_length = len( unchecked_commits )
@@ -117,8 +119,12 @@ class CommitTask ( object ):
         
         if ( unchecked_commits_length > 0 ):
             filter1_commits = self.filterCommitsOnKeywords( project, unchecked_commits ) # Stage 1 filtering
-            filter2_commits = self.filterCommitsOnDiffFiles( repo, project , filter1_commits ) # Stage 2 filtering
-            filter3_commits = self.filterCommitsOnBuildSystem( repo, project, filter2_commits ) # Stage 3 filtering
+            
+            filter2_commits, exception2_commits = self.filterCommitsOnDiffFiles( repo, project , filter1_commits ) # Stage 2 filtering
+            exception_commits.extend( exception2_commits )
+
+            filter3_commits, exception3_commits = self.filterCommitsOnBuildSystem( repo, project, filter2_commits ) # Stage 3 filtering
+            exception_commits.extend( exception3_commits )
 
             filtered_commits = filter3_commits 
         else:
@@ -126,14 +132,15 @@ class CommitTask ( object ):
 
         if( unchecked_commits_length ):
             self.detailed( "{} / {} new commits successfully filtered + collected".format( len( filtered_commits ), unchecked_commits_length ) )
-        return filtered_commits
+        return filtered_commits, exception_commits
 
     def filterCommitsOnDiffFiles ( self, repo, project, commits ):
         if len( commits ) == 0:
             return commits
         else:
             satisfactory_commits = []
-        
+            exception_commits = []
+
             for commit in commits:
                 try:
                     previous_commit = repo.commit( "{}~1".format( commit ) ) # Get previous commit
@@ -165,10 +172,10 @@ class CommitTask ( object ):
                     satisfactory_commits.append( commit )
 
                 except Exception as e:
-                    pass
+                    exception_commits.append( commit, e )
 
             self.debug( "{} / {} commits accepted for diff-based criteria".format( len( satisfactory_commits ), len( commits ) ) )
-            return satisfactory_commits
+            return satisfactory_commits, exception_commits
 
     
     # Filter based on modified file extension(s)
@@ -211,6 +218,8 @@ class CommitTask ( object ):
             return commits
         else:
             satisfactory_commits = []
+            exception_commits = []
+
             self.info( "Processing the build system of {} commits".format( len( commits ) ) )
 
             for commit in commits:
@@ -219,12 +228,12 @@ class CommitTask ( object ):
                     if self.checkBuildSystem( repo, commit ):
                         satisfactory_commits.append( commit )
                 except Exception as e:
-                    pass
+                    exception_commits.append( commit, e )
                 finally:
                     repo.git.reset( "--hard" ) # Reset to ensure local branch reflects remote branch
 
             self.debug( "{} / {} commits accepted on build system criteria".format( len( satisfactory_commits ), len( commits ) ) )
-            return satisfactory_commits
+            return satisfactory_commits, exception_commits
 
     def checkBuildSystem ( self, repo, commit ):
         repo.git.checkout( commit )

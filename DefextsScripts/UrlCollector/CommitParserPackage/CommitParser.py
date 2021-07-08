@@ -177,9 +177,9 @@ class CommitParser ( object ):
     def saveExceptionCommit ( self, project, exceptions, file ):
         self.logger.warning( "Problematic commits = {}".format( len( exceptions ) ) )
 
-        for e in exceptions:
+        for commit, e in exceptions:
 
-            file.write( "Commit Error = [{}]\n".format( project ) )
+            file.write( "Commit Error = [{} - {}]\n".format( project, commit ) )
             file.write( "Error Type = [{}]\n".format( e.__class__ ) )
             file.write( "{}\n".format( e ) )
             file.write( "----------------\n" )
