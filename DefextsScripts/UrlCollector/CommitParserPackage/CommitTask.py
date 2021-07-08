@@ -136,7 +136,7 @@ class CommitTask ( object ):
 
     def filterCommitsOnDiffFiles ( self, repo, project, commits ):
         if len( commits ) == 0:
-            return commits
+            return commits, []
         else:
             satisfactory_commits = []
             exception_commits = []
@@ -215,7 +215,7 @@ class CommitTask ( object ):
 
     def filterCommitsOnBuildSystem ( self, repo, project, commits ):
         if len( commits ) == 0:
-            return commits
+            return commits, []
         else:
             satisfactory_commits = []
             exception_commits = []
