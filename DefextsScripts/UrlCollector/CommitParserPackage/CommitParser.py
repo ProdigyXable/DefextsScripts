@@ -143,7 +143,7 @@ class CommitParser ( object ):
                         self.saveExceptionProject( self.URLS[ index ], future.exception(), exception_file )
                         
                         # Uncomment for debug purposes.  Comment for release
-                        # raise future.exception()
+                        raise future.exception()
 
             # Trimdown list of uncompleted tasks
             unfinished_tasks_index_list = self.removedCompletedIndexes( unfinished_tasks_index_list, finished_indexes )

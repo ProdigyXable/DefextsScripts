@@ -239,7 +239,7 @@ class CommitTask ( object ):
             return satisfactory_commits, exception_commits
 
     def checkBuildSystem ( self, repo, commit ):
-        repo.git.checkout( commit )
+        repo.git.checkout( commit, force=True )
         for current_path, folders, files in os.walk( self.TEMP_FOLDER_NAME ):
             found_build_system_files = self.ACCEPTABLE_BUILD_SYSTEM_FILES.intersection( files )
             if len( found_build_system_files ) > 0:
@@ -288,9 +288,9 @@ class CommitTask ( object ):
     def checkoutBranch ( self, repo, project, branch ):
         if( not self.CURRENT_BRANCH is None ):
             self.resetCommit( repo )
-            repo.git.checkout( self.CURRENT_BRANCH )
+            repo.git.checkout( self.CURRENT_BRANCH, force=True )
         old_branch = repo.active_branch
-        repo.git.checkout( branch, b=branch.name )
+        repo.git.checkout( branch, b=branch.name, force=True )
         new_branch = repo.active_branch
         
         self.debug( "Changing branches: {} -> {}".format( old_branch, new_branch ) )
