@@ -12,7 +12,7 @@ class CommitParser ( object ):
 
     # Commits which do not contain any of these words in the title/body are
     # ignored
-    CRITERIA_KEYWORDS = [ "fix", "add", "change", "modify", "remove", "error", "repair", "issue", "solve" ]
+    CRITERIA_KEYWORDS = [ "fix", "add", "change", "modify", "remove", "error", "repair", "issue", "solve", "missing" ]
 
     # Determines what file types will be acceptable when excluding based on
     # underlying build system
