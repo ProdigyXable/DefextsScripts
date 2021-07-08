@@ -172,7 +172,7 @@ class CommitTask ( object ):
                     satisfactory_commits.append( commit )
 
                 except Exception as e:
-                    exception_commits.append( commit, e )
+                    exception_commits.append( ( commit, e ) )
 
             self.debug( "{} / {} commits accepted for diff-based criteria".format( len( satisfactory_commits ), len( commits ) ) )
             return satisfactory_commits, exception_commits
@@ -228,7 +228,7 @@ class CommitTask ( object ):
                     if self.checkBuildSystem( repo, commit ):
                         satisfactory_commits.append( commit )
                 except Exception as e:
-                    exception_commits.append( commit, e )
+                    exception_commits.append( ( commit, e ) )
                 finally:
                     repo.git.reset( "--hard" ) # Reset to ensure local branch reflects remote branch
 
